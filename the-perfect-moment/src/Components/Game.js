@@ -57,16 +57,30 @@ class Game extends React.Component {
         state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
         cardState.equipable = false;
         cardState.flippable = false;
-        this.state.phase = "setup.opponentEquip";
+        this.state.phase = "setup.give";
         this.state.message = "Select a card to give to your opponent";
       }
-      else if (this.state.phase === "setup.opponentEquip") {
+      else if (this.state.phase === "setup.give") {
         state.opponent.equipment.push(cardState);
         state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
-        cardState.equipable = false;
+        cardState.giveable = false;
         cardState.flippable = false;
         cardState.flipped = !cardState.flipped;
         this.state.phase = "setup.discardOrReturn";
+      }
+      else if (this.state.phase === "setup.discardOrReturn" && moveData.target === "discard") {
+        state.deck.unshift(cardState);
+        state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);        
+        cardState.discardable = false;
+        cardState.returnable = false;
+        this.state.phase = "action.select";
+      }
+      else if (this.state.phase === "setup.discardOrReturn" && moveData.target === "return") {
+        state.deck.push(cardState);
+        state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);        
+        cardState.discardable = false;
+        cardState.returnable = false;
+        this.state.phase = "action.select";
       }
       return state;
     });
@@ -86,10 +100,50 @@ class Game extends React.Component {
   }
 
   render() {
+    this.state.opponent.revision.forEach(card => {
+      card.hidden = true;
+      card.flippable = false;
+      card.equipable = false;
+      card.giveable = false;
+      card.discardable = false;
+      card.returnable = false;
+    });
+
+    if (this.state.phase === "setup.equip") {
+      this.state.player.revision.forEach(card => {
+        card.hidden = false;
+        card.flippable = true;
+        card.equipable = true;
+        card.giveable = false;
+        card.discardable = false;
+        card.returnable = false;
+      });
+    }
+    else if (this.state.phase === "setup.give") {
+      this.state.player.revision.forEach(card => {
+        card.hidden = false;
+        card.flippable = true;
+        card.equipable = false;
+        card.giveable = true;
+        card.discardable = false;
+        card.returnable = false;
+      });
+    }
+    else if (this.state.phase === "setup.discardOrReturn") {
+      this.state.player.revision.forEach(card => {
+        card.hidden = false;
+        card.flippable = false;
+        card.equipable = false;
+        card.giveable = false;
+        card.discardable = true;
+        card.returnable = true;
+      });
+    }
+
     return (<div className="game">
       <h2>{this.state.message}</h2>
       <div>
-        <Revision flipped hidden cards={this.state.opponent.revision} />
+        <Revision flipped cards={this.state.opponent.revision} />
         <Equipment flipped cards={this.state.opponent.equipment} />
         <ScorePile flipped />
       </div>

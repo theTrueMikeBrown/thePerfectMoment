@@ -50,6 +50,12 @@ class Card extends React.Component {
           <img className="actionButton" src={formatImage("flip")} onClick={this.flip} />}
         {this.state.card.equipable &&
           <img className="actionButton" src={formatImage("equip")} onClick={this.equip} />}
+        {this.state.card.giveable &&
+          <img className="actionButton" src={formatImage("give")} onClick={this.give} />}
+        {this.state.card.discardable &&
+          <img className="actionButton" src={formatImage("discard")} onClick={this.discard} />}
+        {this.state.card.returnable &&
+          <img className="actionButton" src={formatImage("return")} onClick={this.return} />}
       </div>
     </div>);
   }
