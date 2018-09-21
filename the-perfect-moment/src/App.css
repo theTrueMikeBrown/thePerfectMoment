@@ -1,0 +1,101 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 50px;
+}
+
+.App-header {
+  background-color: #F3E4D0;
+  height: 50px;
+  color: white;
+  text-align: left;
+  border-bottom: #bf0000 .25em solid;
+  padding: 1em;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+.card, .deck img.art {
+  display: inline-block;
+  height: 14em;
+  width: 10em;
+  border: 1px #000 solid;
+  border-radius: .75em;
+  overflow: hidden;
+}
+
+.actionButtons {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.actionButton {  
+  height: 3em;
+  width: 3em;
+  cursor: pointer;
+}
+
+div.rotate90 + .actionButtons, div.rotate270 + .actionButtons {  
+  left: -1em;
+  bottom: 2em;
+}
+
+div:hover + .actionButtons, .actionButtons:hover {
+  display: inline-block;
+}
+
+.deck img.art {
+  border: 2.5px #000 solid;
+}
+
+.card img.art, .deck img.art {
+  height: 14em;
+  width: 10em;
+}
+
+.wide {  
+  min-width: 14em;
+}
+
+.paradox {
+  margin-left: 2em;
+}
+
+.rotate0 {
+  transform: rotate(0deg);
+}
+
+.rotate90 {
+  transform: rotate(90deg);
+}
+
+.rotate180 {
+  transform: rotate(180deg);
+}
+
+.rotate270 {
+  transform: rotate(270deg);
+}
+
+fieldset {
+  display: inline;
+  border: none;
+}
+
+.inline {
+  display: inline;
+}
+
+.relative {
+  position: relative;
+}
