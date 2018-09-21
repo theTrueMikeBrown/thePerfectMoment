@@ -1,15 +1,17 @@
 import React from 'react';
-import CardState from '../Domain/cardState';
 import Card from './Card';
+import ensureMinArraySize from '../Domain/ensureMinArraySize';
 
 class Revision extends React.Component {
   constructor(props) {
     super(props);
     this.handleEquip = this.handleEquip.bind(this);
   }
+
   handleEquip(cardState) {
     this.props.onEquip(cardState);
   }
+
   render() {
     var flipped = this.props.flipped;
     if (flipped) {
@@ -18,13 +20,8 @@ class Revision extends React.Component {
     else {
       flipped = '';
     }
-    var cards = this.props.cards || [];
-    if (cards.length > 1) {
-      cards = cards.filter(card => card.name !== "empty");
-    }
-    while (cards.length < 1) {
-      cards.push(new CardState());
-    }
+    var cards = ensureMinArraySize(this.props.cards || [], 1);
+
     var hidden = this.props.hidden || false;
     if (hidden) {
       cards.forEach(card => {

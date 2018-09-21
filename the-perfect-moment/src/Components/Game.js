@@ -11,8 +11,10 @@ class Game extends React.Component {
     super(props);
     this.handleEquip = this.handleEquip.bind(this);
     this.draw = this.draw.bind(this);
+
     this.state = {
       phase: "setup.equip",
+      message: "Select a card to equip.",
       deck: [
         new CardState('0.1'), new CardState('0.2'), new CardState('0.3'), new CardState('0.4'), new CardState('0.5'), new CardState('0.6'),
         new CardState('1.1'), new CardState('1.2'), new CardState('1.3'), new CardState('1.4'), new CardState('1.5'), new CardState('1.6'),
@@ -30,7 +32,9 @@ class Game extends React.Component {
         scorePile: []
       }
     };
+
     this.shuffle(this.state.deck);
+
     var draw = this.draw;
     this.state.opponent.revision.push(draw());
     this.state.opponent.equipment.push(draw());
@@ -40,9 +44,11 @@ class Game extends React.Component {
     this.state.player.revision.push(draw());
     this.state.player.revision.push(draw());
   }
+
   draw() {
     return this.state.deck.pop();
   }
+
   handleEquip(cardState) {
     this.setState(state => {
       if (this.state.phase === "setup.equip") {
@@ -51,6 +57,7 @@ class Game extends React.Component {
         cardState.equipable = false;
         cardState.flippable = false;
         this.state.phase = "setup.opponentEquip";
+        this.state.message = "Select a card to give to your opponent";
       }
       else if (this.state.phase === "setup.opponentEquip") {
         state.opponent.equipment.push(cardState);
@@ -63,6 +70,7 @@ class Game extends React.Component {
       return state;
     });
   }
+
   shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
     while (0 !== currentIndex) {
@@ -75,9 +83,10 @@ class Game extends React.Component {
     }
     return array;
   }
+
   render() {
     return (<div className="game">
-      <div>&nbsp;</div>
+      <h2>{this.state.message}</h2>
       <div>
         <Revision flipped hidden cards={this.state.opponent.revision} />
         <Equipment flipped cards={this.state.opponent.equipment} />

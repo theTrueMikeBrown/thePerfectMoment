@@ -1,6 +1,6 @@
 import React from 'react';
-import CardState from '../Domain/cardState';
 import Card from './Card';
+import ensureMinArraySize from '../Domain/ensureMinArraySize';
 
 class Equipment extends React.Component {
   render() {
@@ -11,13 +11,8 @@ class Equipment extends React.Component {
     else {
       flipped = '';
     }
-    var cards = this.props.cards || [];
-    if (cards.length > 2) {
-      cards = cards.filter(card => card.name !== "empty");
-    }
-    while (cards.length < 2) {
-      cards.push(new CardState());
-    }
+    var cards = ensureMinArraySize(this.props.cards || [], 2);
+
     var hidden = this.props.hidden || false;
     if (hidden) {
       cards.forEach(card => card.hidden = true);
