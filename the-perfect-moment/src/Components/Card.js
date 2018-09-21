@@ -7,8 +7,13 @@ class Card extends React.Component {
     super(props);
     this.state = { card: new CardState() };
     this.flip = this.flip.bind(this);
+    this.move = this.move.bind(this);
     this.equip = this.equip.bind(this);
+    this.give = this.give.bind(this);
+    this.discard = this.discard.bind(this);
+    this.return = this.return.bind(this);
   }
+
   flip(e) {
     e.preventDefault();
     this.setState(state => {
@@ -16,10 +21,18 @@ class Card extends React.Component {
       return state;
     });
   }
-  equip(e) {
-    e.preventDefault();
-    this.props.onEquip(this.state.card);
+
+  move(target) {
+    this.props.onMove({
+      card: this.state.card,
+      target: target       
+    });
   }
+  equip(e) { e.preventDefault(); this.move("equip"); }
+  give(e) { e.preventDefault(); this.move("give"); }
+  discard(e) { e.preventDefault(); this.move("discard"); }
+  return(e) { e.preventDefault(); this.move("return"); }
+
   render() {
     var getName = (card) => card.hidden ? 'BackPM' : card.name;
     var rotate = parseInt(this.props.rotate) || 0;

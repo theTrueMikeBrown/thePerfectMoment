@@ -5,11 +5,11 @@ import ensureMinArraySize from '../Domain/ensureMinArraySize';
 class Revision extends React.Component {
   constructor(props) {
     super(props);
-    this.handleEquip = this.handleEquip.bind(this);
+    this.handleMove = this.handleMove.bind(this);
   }
 
-  handleEquip(cardState) {
-    this.props.onEquip(cardState);
+  handleMove(moveData) {
+    this.props.onMove(moveData);
   }
 
   render() {
@@ -39,7 +39,7 @@ class Revision extends React.Component {
     }
     return (<fieldset className="revision">
       <legend>Revision</legend>
-      {cards.map(card => (<Card key={card.id} rotate={flipped} card={card} onEquip={this.handleEquip} />))}
+      {cards.map(card => (<Card key={card.id} rotate={flipped} card={card} onMove={this.handleMove} />))}
     </fieldset>);
   }
 }

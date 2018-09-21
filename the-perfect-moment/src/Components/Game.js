@@ -9,7 +9,7 @@ import Revision from './Revision';
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    this.handleEquip = this.handleEquip.bind(this);
+    this.handleMove = this.handleMove.bind(this);
     this.draw = this.draw.bind(this);
 
     this.state = {
@@ -49,7 +49,8 @@ class Game extends React.Component {
     return this.state.deck.pop();
   }
 
-  handleEquip(cardState) {
+  handleMove(moveData) {
+    var cardState = moveData.card
     this.setState(state => {
       if (this.state.phase === "setup.equip") {
         state.player.equipment.push(cardState);
@@ -99,7 +100,7 @@ class Game extends React.Component {
       <div>
         <ScorePile />
         <Equipment cards={this.state.player.equipment} />
-        <Revision cards={this.state.player.revision} onEquip={this.handleEquip} />
+        <Revision cards={this.state.player.revision} onMove={this.handleMove} />
       </div>
     </div>);
   }
