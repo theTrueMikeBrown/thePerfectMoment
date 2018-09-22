@@ -35,14 +35,13 @@ class Game extends React.Component {
 
     this.shuffle(this.state.deck);
 
-    var draw = this.draw;
-    this.state.opponent.revision.push(draw());
-    this.state.opponent.equipment.push(draw());
-    this.state.paradox.push(draw());
-    this.state.player.revision.push(draw());
-    this.state.player.revision.push(draw());
-    this.state.player.revision.push(draw());
-    this.state.player.revision.push(draw());
+    this.state.opponent.revision.push(this.draw());
+    this.state.opponent.equipment.push(this.draw());
+    this.state.paradox.push(this.draw());
+    this.state.player.revision.push(this.draw());
+    this.state.player.revision.push(this.draw());
+    this.state.player.revision.push(this.draw());
+    this.state.player.revision.push(this.draw());
   }
 
   draw() {
@@ -50,37 +49,51 @@ class Game extends React.Component {
   }
 
   handleMove(moveData) {
-    var cardState = moveData.card
+    const cardState = moveData.card
+    const target = moveData.target;
+
     this.setState(state => {
-      if (this.state.phase === "setup.equip") {
+      cardState.equipable = false;
+      cardState.flippable = false;
+      cardState.giveable = false;
+      cardState.discardable = false;
+      cardState.returnable = false;
+      
+      state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
+      state.player.equipment = state.player.equipment.filter(card => card.id !== cardState.id);
+      state.player.scorePile = state.player.scorePile.filter(card => card.id !== cardState.id);
+      state.opponent.revision = state.opponent.revision.filter(card => card.id !== cardState.id);
+      state.opponent.equipment = state.opponent.equipment.filter(card => card.id !== cardState.id);
+      state.opponent.scorePile = state.opponent.scorePile.filter(card => card.id !== cardState.id);
+      state.paradox = state.paradox.filter(card => card.id !== cardState.id);
+      state.deck = state.deck.filter(card => card.id !== cardState.id);
+
+      if (target === "equip") {
         state.player.equipment.push(cardState);
-        state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
-        cardState.equipable = false;
-        cardState.flippable = false;
+      }
+      else if (target == "give") {
+        state.opponent.equipment.push(cardState);
+        cardState.flipped = !cardState.flipped;
+      }
+      else if (target == "discard") {
+        state.deck.unshift(cardState);
+      }
+      else if (target == "return") {
+        state.deck.push(cardState);
+      }
+
+      if (this.state.phase === "setup.equip") {
         this.state.phase = "setup.give";
-        this.state.message = "Select a card to give to your opponent";
+        this.state.message = "Select a card to give to your opponent.";
       }
       else if (this.state.phase === "setup.give") {
-        state.opponent.equipment.push(cardState);
-        state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
-        cardState.giveable = false;
-        cardState.flippable = false;
-        cardState.flipped = !cardState.flipped;
-        this.state.phase = "setup.discardOrReturn";
+        state.player.equipment.push(this.draw());
+        this.state.phase = "setup.discardOrReturn";        
+        this.state.message = "Select a card to return to the top of the deck or discard.";
       }
-      else if (this.state.phase === "setup.discardOrReturn" && moveData.target === "discard") {
-        state.deck.unshift(cardState);
-        state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);        
-        cardState.discardable = false;
-        cardState.returnable = false;
-        this.state.phase = "action.select";
-      }
-      else if (this.state.phase === "setup.discardOrReturn" && moveData.target === "return") {
-        state.deck.push(cardState);
-        state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);        
-        cardState.discardable = false;
-        cardState.returnable = false;
-        this.state.phase = "action.select";
+      else if (this.state.phase === "setup.discardOrReturn") {
+        this.state.phase = "action.select";        
+        this.state.message = "Select an equipment card to activate.";
       }
       return state;
     });
@@ -137,6 +150,25 @@ class Game extends React.Component {
         card.giveable = false;
         card.discardable = true;
         card.returnable = true;
+      });
+    }
+    else if (this.state.phase === "action.select") {
+      this.state.player.revision.forEach(card => {
+        card.hidden = false;
+        card.flippable = false;
+        card.equipable = false;
+        card.giveable = false;
+        card.discardable = false;
+        card.returnable = false;
+      });
+      this.state.player.equipment.forEach(card => {
+        card.hidden = false;
+        card.flippable = false;
+        card.equipable = false;
+        card.giveable = false;
+        card.discardable = false;
+        card.returnable = false;
+        card.activatable = true;
       });
     }
 
