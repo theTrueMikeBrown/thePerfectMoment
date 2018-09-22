@@ -1,9 +1,9 @@
 var _currentCardId = 0;
 class CardState {
-  constructor(name = "empty", flipped = false, hidden = false) {
+  constructor(name = "empty") {
     this.name = name;
-    this.flipped = flipped;
-    this.hidden = hidden;
+    this.flipped = false;
+    this.hidden = false;
     this.id = _currentCardId++;
   }
 }

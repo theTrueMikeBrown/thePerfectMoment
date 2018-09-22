@@ -45,8 +45,8 @@
   cursor: pointer;
 }
 
-div.rotate90 + .actionButtons, div.rotate270 + .actionButtons {  
-  left: -1em;
+div.rotate90 + .actionButtons, div.rotate270 + .actionButtons {
+  right: -2em;
   bottom: 2em;
 }
 

@@ -12,6 +12,7 @@ class Card extends React.Component {
     this.give = this.give.bind(this);
     this.discard = this.discard.bind(this);
     this.return = this.return.bind(this);
+    this.activate = this.activate.bind(this);
   }
 
   flip(e) {
@@ -25,13 +26,14 @@ class Card extends React.Component {
   move(target) {
     this.props.onMove({
       card: this.state.card,
-      target: target       
+      target: target
     });
   }
   equip(e) { e.preventDefault(); this.move("equip"); }
   give(e) { e.preventDefault(); this.move("give"); }
   discard(e) { e.preventDefault(); this.move("discard"); }
   return(e) { e.preventDefault(); this.move("return"); }
+  activate(e) { e.preventDefault(); this.state.card.action() }
 
   render() {
     var getName = (card) => card.hidden ? 'BackPM' : card.name;
@@ -56,6 +58,8 @@ class Card extends React.Component {
           <img className="actionButton" src={formatImage("discard")} onClick={this.discard} />}
         {this.state.card.returnable &&
           <img className="actionButton" src={formatImage("return")} onClick={this.return} />}
+        {this.state.card.activatable &&
+            <img className="actionButton" src={formatImage("activate")} onClick={this.activate} />}
       </div>
     </div>);
   }

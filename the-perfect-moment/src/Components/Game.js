@@ -170,6 +170,15 @@ class Game extends React.Component {
         card.returnable = false;
         card.activatable = true;
       });
+      this.state.paradox.forEach(card => {
+        card.hidden = false;
+        card.flippable = false;
+        card.equipable = false;
+        card.giveable = false;
+        card.discardable = false;
+        card.returnable = false;
+        card.activatable = true;
+      });
     }
 
     return (<div className="game">
