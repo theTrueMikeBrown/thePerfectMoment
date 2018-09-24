@@ -6,13 +6,16 @@ class Card extends React.Component {
   constructor(props) {
     super(props);
     this.state = { card: new CardState() };
+    this.activationStep = "0";
     this.flip = this.flip.bind(this);
     this.move = this.move.bind(this);
     this.equip = this.equip.bind(this);
     this.give = this.give.bind(this);
     this.discard = this.discard.bind(this);
     this.return = this.return.bind(this);
+    this.swap = this.swap.bind(this);
     this.activate = this.activate.bind(this);
+    this.state.card.resetStatus();
   }
 
   flip(e) {
@@ -20,6 +23,12 @@ class Card extends React.Component {
     this.setState(state => {
       state.card.flipped = !state.card.flipped;
       return state;
+    });
+  }
+
+  activateCard(card) {
+    this.props.onActivate({
+      card: this.state.card
     });
   }
 
@@ -33,7 +42,8 @@ class Card extends React.Component {
   give(e) { e.preventDefault(); this.move("give"); }
   discard(e) { e.preventDefault(); this.move("discard"); }
   return(e) { e.preventDefault(); this.move("return"); }
-  activate(e) { e.preventDefault(); this.state.card.action() }
+  swap(e) { e.preventDefault(); this.move("swap"); }
+  activate(e) { e.preventDefault(); this.activateCard(); }
 
   render() {
     var getName = (card) => card.hidden ? 'BackPM' : card.name;
@@ -58,6 +68,8 @@ class Card extends React.Component {
           <img className="actionButton" src={formatImage("discard")} onClick={this.discard} />}
         {this.state.card.returnable &&
           <img className="actionButton" src={formatImage("return")} onClick={this.return} />}
+        {this.state.card.swapable &&
+          <img className="actionButton" src={formatImage("swap")} onClick={this.swap} />}
         {this.state.card.activatable &&
             <img className="actionButton" src={formatImage("activate")} onClick={this.activate} />}
       </div>

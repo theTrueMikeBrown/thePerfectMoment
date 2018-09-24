@@ -1,25 +1,23 @@
 import React from 'react';
-import CardState from '../Domain/cardState';
 import Deck from './Deck';
 import ScorePile from './ScorePile';
 import Paradox from './Paradox';
 import Equipment from './Equipment';
 import Revision from './Revision';
+import Cards from '../Domain/cards';
 
 class Game extends React.Component {
   constructor(props) {
     super(props);
     this.handleMove = this.handleMove.bind(this);
+    this.handleActivate = this.handleActivate.bind(this);
     this.draw = this.draw.bind(this);
 
     this.state = {
       phase: "setup.equip",
       message: "Select a card to equip.",
-      deck: [
-        new CardState('0.1'), new CardState('0.2'), new CardState('0.3'), new CardState('0.4'), new CardState('0.5'), new CardState('0.6'),
-        new CardState('1.1'), new CardState('1.2'), new CardState('1.3'), new CardState('1.4'), new CardState('1.5'), new CardState('1.6'),
-        new CardState('2.1'), new CardState('2.2'), new CardState('2.3'), new CardState('2.4'), new CardState('2.5'), new CardState('2.6'),
-      ],
+      actionAbortable: false,
+      deck: Cards,
       paradox: [],
       player: {
         revision: [],
@@ -48,6 +46,53 @@ class Game extends React.Component {
     return this.state.deck.pop();
   }
 
+  handleActivate(activateData) {
+    var result = activateData.card.action(this.state, activateData.card)
+    //TODO: correct having too much/little equipment
+    if (!this.complete) {
+      this.state.message = result.message;
+      this.state.actionAbortable = this.abortable;
+    }
+    else if (this.state.phase === "action.select.1") {
+      this.state.message = "Select another equipment card to activate."
+      this.state.actionAbortable = this.abortable;
+      this.state.phase = "action.select.2";
+    }
+    else if (this.state.phase === "action.select.2") {
+      if (this.isAnyCardScorable(this.state)) {
+        this.state.message = "Select a card to score.";
+        this.state.actionAbortable = this.abortable;
+        this.state.phase = "score.card";
+      }
+      else {
+        //TODO: opponent's turn here
+        this.state.message = "Select an equipment card to activate.";
+        this.state.actionAbortable = this.abortable;
+        this.state.phase = "action.select.1";
+      }
+    }
+  }
+
+  isAnyCardScorable(state) {
+    for (var i = 0; i < state.paradox.length; i++) {
+      if (isCardScorable(state.paradox[i], state)) {
+        return true;
+      }
+    }
+    for (var i = 0; i < state.player.revision; i++) {
+      if (isCardScorable(state.player.revision[i], state)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isCardScorable(card, state) {
+    if (state.equipment)
+    card.action1
+    card.action2
+  }
+
   handleMove(moveData) {
     const cardState = moveData.card
     const target = moveData.target;
@@ -58,7 +103,8 @@ class Game extends React.Component {
       cardState.giveable = false;
       cardState.discardable = false;
       cardState.returnable = false;
-      
+      cardState.swapable = false;
+
       state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
       state.player.equipment = state.player.equipment.filter(card => card.id !== cardState.id);
       state.player.scorePile = state.player.scorePile.filter(card => card.id !== cardState.id);
@@ -88,12 +134,13 @@ class Game extends React.Component {
       }
       else if (this.state.phase === "setup.give") {
         state.player.equipment.push(this.draw());
-        this.state.phase = "setup.discardOrReturn";        
+        this.state.phase = "setup.discardOrReturn";
         this.state.message = "Select a card to return to the top of the deck or discard.";
       }
       else if (this.state.phase === "setup.discardOrReturn") {
-        this.state.phase = "action.select";        
+        this.state.phase = "action.select.1";
         this.state.message = "Select an equipment card to activate.";
+        this.state.actionAbortable = true;
       }
       return state;
     });
@@ -114,70 +161,62 @@ class Game extends React.Component {
 
   render() {
     this.state.opponent.revision.forEach(card => {
+      card.resetStatus();
       card.hidden = true;
-      card.flippable = false;
-      card.equipable = false;
-      card.giveable = false;
-      card.discardable = false;
-      card.returnable = false;
     });
 
     if (this.state.phase === "setup.equip") {
       this.state.player.revision.forEach(card => {
-        card.hidden = false;
+        card.resetStatus();
         card.flippable = true;
         card.equipable = true;
-        card.giveable = false;
-        card.discardable = false;
-        card.returnable = false;
       });
     }
     else if (this.state.phase === "setup.give") {
       this.state.player.revision.forEach(card => {
-        card.hidden = false;
+        card.resetStatus();
         card.flippable = true;
-        card.equipable = false;
         card.giveable = true;
-        card.discardable = false;
-        card.returnable = false;
       });
     }
     else if (this.state.phase === "setup.discardOrReturn") {
       this.state.player.revision.forEach(card => {
-        card.hidden = false;
-        card.flippable = false;
-        card.equipable = false;
-        card.giveable = false;
+        card.resetStatus();
         card.discardable = true;
         card.returnable = true;
       });
     }
-    else if (this.state.phase === "action.select") {
+    else if (this.state.phase === "action.select.1" || this.state.phase === "action.select.2") {
       this.state.player.revision.forEach(card => {
-        card.hidden = false;
-        card.flippable = false;
-        card.equipable = false;
-        card.giveable = false;
-        card.discardable = false;
-        card.returnable = false;
+        card.resetStatus();
       });
       this.state.player.equipment.forEach(card => {
-        card.hidden = false;
-        card.flippable = false;
-        card.equipable = false;
-        card.giveable = false;
-        card.discardable = false;
-        card.returnable = false;
+        card.resetStatus();
+        card.activatable = true;
+      });
+      this.state.opponent.equipment.forEach(card => {
+        card.resetStatus();
         card.activatable = true;
       });
       this.state.paradox.forEach(card => {
-        card.hidden = false;
-        card.flippable = false;
-        card.equipable = false;
-        card.giveable = false;
-        card.discardable = false;
-        card.returnable = false;
+        card.resetStatus();
         card.activatable = true;
+      });
+    }
+    else if (this.state.phase === "score.card") {
+      this.state.player.revision.forEach(card => {
+        card.resetStatus();
+        if (this.isCardScorable(card, this.state)) { card.scorable = true; }
+      });
+      this.state.player.equipment.forEach(card => {
+        card.resetStatus();
+      });
+      this.state.opponent.equipment.forEach(card => {
+        card.resetStatus();
+      });
+      this.state.paradox.forEach(card => {
+        card.resetStatus();
+        if (this.isCardScorable(card)) { card.scorable = true; }
       });
     }
 
@@ -185,16 +224,16 @@ class Game extends React.Component {
       <h2>{this.state.message}</h2>
       <div>
         <Revision flipped cards={this.state.opponent.revision} />
-        <Equipment flipped cards={this.state.opponent.equipment} />
+        <Equipment flipped cards={this.state.opponent.equipment} onActivate={this.handleActivate} />
         <ScorePile flipped />
       </div>
       <div>
         <Deck />
-        <Paradox cards={this.state.paradox} />
+        <Paradox cards={this.state.paradox} onActivate={this.handleActivate} />
       </div>
       <div>
         <ScorePile />
-        <Equipment cards={this.state.player.equipment} />
+        <Equipment cards={this.state.player.equipment} onActivate={this.handleActivate} />
         <Revision cards={this.state.player.revision} onMove={this.handleMove} />
       </div>
     </div>);
