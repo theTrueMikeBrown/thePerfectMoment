@@ -6,7 +6,7 @@ class Deck extends React.Component {
     var image = this.props.img || formatImage('BackPM');
     return (<fieldset className="deck">
       <legend>Deck</legend>
-      <img className="art" src={image} />
+      <img className="art" src={image} alt="deck of cards" />
     </fieldset>);
   }
 }

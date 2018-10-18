@@ -8,8 +8,7 @@ var CardActions = {
         ///2 action checks card status to see where it currently is
         ///3 action performs update on game to relenquish control
         ///4 game does stuff
-        ///5 go to 1 if not done 
-        debugger;
+        ///5 go to 1 if not done
         gameState.player.equipment.forEach(card => {
             card.resetStatus();
             if (card.activationStep === "0" || card.activationStep === "1") { card.swapable = true; }

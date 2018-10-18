@@ -6,7 +6,6 @@ class Card extends React.Component {
   constructor(props) {
     super(props);
     this.state = { card: new CardState() };
-    this.activationStep = "0";
     this.flip = this.flip.bind(this);
     this.move = this.move.bind(this);
     this.equip = this.equip.bind(this);
@@ -47,31 +46,36 @@ class Card extends React.Component {
 
   render() {
     var getName = (card) => card.hidden ? 'BackPM' : card.name;
-    var rotate = parseInt(this.props.rotate) || 0;
-    this.state.card = this.props.card || new CardState();
+    var rotate = parseInt(this.props.rotate, 10) || 0;
+
+    var stateCopy = this.state;
+    stateCopy.card = this.props.card || new CardState();
+    //vvvvvvvvvvvvvvvvvvvvvvvvv - this is unnecessary, since it will get called elsewhere
+    //this.setState(stateCopy);
+
     if (this.state.card.flipped) {
       rotate = (rotate + 180) % 360;
     }
     rotate = `rotate${rotate}`;
     return (<div className="inline relative">
       <div className={"card " + rotate}>
-        <img className="art" src={formatImage(getName(this.state.card))} />
+        <img className="art" src={formatImage(getName(this.state.card))} alt={getName(this.state.card)} />
       </div>
       <div className="actionButtons">
         {this.state.card.flippable &&
-          <img className="actionButton" src={formatImage("flip")} onClick={this.flip} />}
+          <img className="actionButton" src={formatImage("flip")} onClick={this.flip} alt="flip card" title="flip card" />}
         {this.state.card.equipable &&
-          <img className="actionButton" src={formatImage("equip")} onClick={this.equip} />}
+          <img className="actionButton" src={formatImage("equip")} onClick={this.equip} alt="equip card" title="equip card" />}
         {this.state.card.giveable &&
-          <img className="actionButton" src={formatImage("give")} onClick={this.give} />}
+          <img className="actionButton" src={formatImage("give")} onClick={this.give} alt="give card" title="give card" />}
         {this.state.card.discardable &&
-          <img className="actionButton" src={formatImage("discard")} onClick={this.discard} />}
+          <img className="actionButton" src={formatImage("discard")} onClick={this.discard} alt="discard card" title="discard card" />}
         {this.state.card.returnable &&
-          <img className="actionButton" src={formatImage("return")} onClick={this.return} />}
+          <img className="actionButton" src={formatImage("return")} onClick={this.return} alt="return card" title="return card" />}
         {this.state.card.swapable &&
-          <img className="actionButton" src={formatImage("swap")} onClick={this.swap} />}
+          <img className="actionButton" src={formatImage("swap")} onClick={this.swap} alt="swap card" title="swap card" />}
         {this.state.card.activatable &&
-            <img className="actionButton" src={formatImage("activate")} onClick={this.activate} />}
+          <img className="actionButton" src={formatImage("activate")} onClick={this.activate} alt="activate card" title="activate card" />}
       </div>
     </div>);
   }

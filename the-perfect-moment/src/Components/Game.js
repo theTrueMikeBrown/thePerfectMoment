@@ -12,6 +12,8 @@ class Game extends React.Component {
     this.handleMove = this.handleMove.bind(this);
     this.handleActivate = this.handleActivate.bind(this);
     this.draw = this.draw.bind(this);
+    this.isCardScorable = this.isCardScorable.bind(this);
+    this.isAnyCardScorable = this.isAnyCardScorable.bind(this);
 
     this.state = {
       phase: "setup.equip",
@@ -49,48 +51,52 @@ class Game extends React.Component {
   handleActivate(activateData) {
     var result = activateData.card.action(this.state, activateData.card)
     //TODO: correct having too much/little equipment
+    var stateCopy = this.state;
     if (!this.complete) {
-      this.state.message = result.message;
-      this.state.actionAbortable = this.abortable;
+      stateCopy.message = result.message;
+      stateCopy.actionAbortable = this.abortable;
     }
     else if (this.state.phase === "action.select.1") {
-      this.state.message = "Select another equipment card to activate."
-      this.state.actionAbortable = this.abortable;
-      this.state.phase = "action.select.2";
+      stateCopy.message = "Select another equipment card to activate."
+      stateCopy.actionAbortable = this.abortable;
+      stateCopy.phase = "action.select.2";
     }
     else if (this.state.phase === "action.select.2") {
-      if (this.isAnyCardScorable(this.state)) {
-        this.state.message = "Select a card to score.";
-        this.state.actionAbortable = this.abortable;
-        this.state.phase = "score.card";
+      if (this.isAnyCardScorable()) {
+        stateCopy.message = "Select a card to score.";
+        stateCopy.actionAbortable = this.abortable;
+        stateCopy.phase = "score.card";
       }
       else {
         //TODO: opponent's turn here
-        this.state.message = "Select an equipment card to activate.";
-        this.state.actionAbortable = this.abortable;
-        this.state.phase = "action.select.1";
+        stateCopy.message = "Select an equipment card to activate.";
+        stateCopy.actionAbortable = this.abortable;
+        stateCopy.phase = "action.select.1";
       }
     }
+    this.setState(stateCopy);
   }
 
-  isAnyCardScorable(state) {
-    for (var i = 0; i < state.paradox.length; i++) {
-      if (isCardScorable(state.paradox[i], state)) {
+  isAnyCardScorable() {
+    for (var i = 0; i < this.state.paradox.length; i++) {
+      if (this.isCardScorable(this.state.paradox[i])) {
         return true;
       }
     }
-    for (var i = 0; i < state.player.revision; i++) {
-      if (isCardScorable(state.player.revision[i], state)) {
+    for (var j = 0; j < this.state.player.revision; j++) {
+      if (this.isCardScorable(this.state.player.revision[j])) {
         return true;
       }
     }
     return false;
   }
 
-  isCardScorable(card, state) {
-    if (state.equipment)
-    card.action1
-    card.action2
+  isCardScorable(card) {
+    return this.state.equipment.some(equipmentCard =>
+      equipmentCard.action1 === card.action1 ||
+      equipmentCard.action1 === card.action2 ||
+      equipmentCard.action2 === card.action1 ||
+      equipmentCard.action2 === card.action2);
   }
 
   handleMove(moveData) {
@@ -117,31 +123,35 @@ class Game extends React.Component {
       if (target === "equip") {
         state.player.equipment.push(cardState);
       }
-      else if (target == "give") {
+      else if (target === "give") {
         state.opponent.equipment.push(cardState);
         cardState.flipped = !cardState.flipped;
       }
-      else if (target == "discard") {
+      else if (target === "discard") {
         state.deck.unshift(cardState);
       }
-      else if (target == "return") {
+      else if (target === "return") {
         state.deck.push(cardState);
       }
 
-      if (this.state.phase === "setup.equip") {
-        this.state.phase = "setup.give";
-        this.state.message = "Select a card to give to your opponent.";
+      var stateCopy = this.state;
+      if (stateCopy.phase === "setup.equip") {
+        stateCopy.phase = "setup.give";
+        stateCopy.message = "Select a card to give to your opponent.";
       }
       else if (this.state.phase === "setup.give") {
         state.player.equipment.push(this.draw());
-        this.state.phase = "setup.discardOrReturn";
-        this.state.message = "Select a card to return to the top of the deck or discard.";
+        stateCopy.phase = "setup.discardOrReturn";
+        stateCopy.message = "Select a card to return to the top of the deck or discard.";
       }
       else if (this.state.phase === "setup.discardOrReturn") {
-        this.state.phase = "action.select.1";
-        this.state.message = "Select an equipment card to activate.";
-        this.state.actionAbortable = true;
-      }
+        stateCopy.phase = "action.select.1";
+        stateCopy.message = "Select an equipment card to activate.";
+        stateCopy.actionAbortable = true;
+      } 
+      //vvvvvvvvvvvvvvvvvvvvvvvvv - this is unnecessary, since it will get called elsewhere
+      //this.setState(stateCopy);
+
       return state;
     });
   }
@@ -220,6 +230,13 @@ class Game extends React.Component {
       });
     }
 
+    var abortArea = <div />;
+    if (this.state.actionAbortable) {
+      abortArea = <div className="actionButtons">
+          <img className="actionButton" src="/img/abort.png" alt="abort" title="Abort" />
+      </div>;
+    }
+
     return (<div className="game">
       <h2>{this.state.message}</h2>
       <div>
@@ -236,6 +253,7 @@ class Game extends React.Component {
         <Equipment cards={this.state.player.equipment} onActivate={this.handleActivate} />
         <Revision cards={this.state.player.revision} onMove={this.handleMove} />
       </div>
+      {abortArea}
     </div>);
   }
 }
