@@ -40,24 +40,24 @@ var CardActions = {
 };
 
 var Cards = [
-    new CardState('0.1', CardActions.flowers, CardActions.poetry),
-    new CardState('0.2', CardActions.flowers, CardActions.candy),
-    new CardState('0.3', CardActions.flowers, CardActions.ring),
-    new CardState('0.4', CardActions.poetry, CardActions.candy),
+    new CardState('0.1', CardActions.poetry, CardActions.flowers),
+    new CardState('0.2', CardActions.candy, CardActions.flowers),
+    new CardState('0.3', CardActions.ring, CardActions.flowers),
+    new CardState('0.4', CardActions.candy, CardActions.poetry),
     new CardState('0.5', CardActions.poetry, CardActions.ring),
     new CardState('0.6', CardActions.candy, CardActions.ring),
-    new CardState('1.1', CardActions.map, CardActions.disguise),
-    new CardState('1.2', CardActions.map, CardActions.gun),
-    new CardState('1.3', CardActions.map, CardActions.armor),
-    new CardState('1.4', CardActions.disguise, CardActions.gun),
-    new CardState('1.5', CardActions.disguise, CardActions.armor),
+    new CardState('1.1', CardActions.disguise, CardActions.map),
+    new CardState('1.2', CardActions.gun, CardActions.map),
+    new CardState('1.3', CardActions.armor, CardActions.map),
+    new CardState('1.4', CardActions.gun, CardActions.disguise),
+    new CardState('1.5', CardActions.armor, CardActions.disguise),
     new CardState('1.6', CardActions.gun, CardActions.armor),
     new CardState('2.1', CardActions.keys, CardActions.phone),
     new CardState('2.2', CardActions.keys, CardActions.wallet),
     new CardState('2.3', CardActions.keys, CardActions.tickets),
-    new CardState('2.4', CardActions.phone, CardActions.wallet),
-    new CardState('2.5', CardActions.phone, CardActions.tickets),
-    new CardState('2.6', CardActions.wallet, CardActions.tickets),
+    new CardState('2.4', CardActions.wallet, CardActions.phone),
+    new CardState('2.5', CardActions.tickets, CardActions.phone),
+    new CardState('2.6', CardActions.tickets, CardActions.wallet),
 ];
 
 export default Cards;
