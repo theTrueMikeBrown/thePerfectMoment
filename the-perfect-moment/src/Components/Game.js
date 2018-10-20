@@ -12,8 +12,10 @@ class Game extends React.Component {
     this.handleMove = this.handleMove.bind(this);
     this.handleActivate = this.handleActivate.bind(this);
     this.draw = this.draw.bind(this);
+    this.abort = this.abort.bind(this);
     this.isCardScorable = this.isCardScorable.bind(this);
     this.isAnyCardScorable = this.isAnyCardScorable.bind(this);
+    this.endActionPhase = this.endActionPhase.bind(this);
 
     this.state = {
       phase: "setup.equip",
@@ -62,19 +64,23 @@ class Game extends React.Component {
       stateCopy.phase = "action.select.2";
     }
     else if (this.state.phase === "action.select.2") {
-      if (this.isAnyCardScorable()) {
-        stateCopy.message = "Select a card to score.";
-        stateCopy.actionAbortable = this.abortable;
-        stateCopy.phase = "score.card";
-      }
-      else {
-        //TODO: opponent's turn here
-        stateCopy.message = "Select an equipment card to activate.";
-        stateCopy.actionAbortable = this.abortable;
-        stateCopy.phase = "action.select.1";
-      }
+      this.endActionPhase(stateCopy);
     }
     this.setState(stateCopy);
+  }
+
+  endActionPhase(stateCopy) {
+    if (this.isAnyCardScorable()) {
+      stateCopy.message = "Select a card to score.";
+      stateCopy.actionAbortable = true;
+      stateCopy.phase = "score.card";
+    }
+    else {
+      //TODO: opponent's turn here
+      stateCopy.message = "Select an equipment card to activate.";
+      stateCopy.actionAbortable = true;
+      stateCopy.phase = "action.select.1";
+    }
   }
 
   isAnyCardScorable() {
@@ -92,7 +98,7 @@ class Game extends React.Component {
   }
 
   isCardScorable(card) {
-    return this.state.equipment.some(equipmentCard =>
+    return this.state.player.equipment.some(equipmentCard =>
       equipmentCard.action1 === card.action1 ||
       equipmentCard.action1 === card.action2 ||
       equipmentCard.action2 === card.action1 ||
@@ -169,6 +175,15 @@ class Game extends React.Component {
     return array;
   }
 
+  abort(e) {
+    e.preventDefault(); 
+    if (this.state.phase.startsWith("action.select")) {
+      var stateCopy = this.state;
+      this.endActionPhase(stateCopy);
+      this.setState(stateCopy);
+    }
+  }
+
   render() {
     this.state.opponent.revision.forEach(card => {
       card.resetStatus();
@@ -233,7 +248,7 @@ class Game extends React.Component {
     var abortArea = <div />;
     if (this.state.actionAbortable) {
       abortArea = <div className="actionButtons">
-          <img className="actionButton" src="/img/abort.png" alt="abort" title="Abort" />
+          <img className="actionButton" src="/img/abort.png" onClick={this.abort} alt="abort" title="Abort" />
       </div>;
     }
 
