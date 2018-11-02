@@ -6,8 +6,8 @@ function resetAllStatuses(state) {
     state.player.revision.forEach(card => { card.resetStatus(); });
     state.player.equipment.forEach(card => { card.resetStatus(); });
     state.opponent.equipment.forEach(card => { card.resetStatus(); });
-    state.paradox.forEach(card => { card.resetStatus(); });    
-  }
+    state.paradox.forEach(card => { card.resetStatus(); });
+}
 
 var CardActions = {
     flowers: new CardAction("Flowers", (gameState, card) => {
@@ -37,7 +37,37 @@ var CardActions = {
             return new Update("", true);
         }
     }),
-    poetry: new CardAction("Poetry", () => { }),
+    poetry: new CardAction("Poetry", (gameState, card) => {
+        resetAllStatuses(gameState);
+
+        var markReturnable = function () {
+            gameState.player.equipment.forEach(equipmentCard => {
+                equipmentCard.returnable = true;
+            });
+            gameState.player.revision.forEach(revisionCard => {
+                revisionCard.returnable = true;
+            });
+        };
+
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+
+            gameState.player.revision.push(gameState.deck.pop());
+            gameState.player.revision.push(gameState.deck.pop());
+
+            markReturnable();
+            return new Update("Select a card to return.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            card.activationStep = "2";
+            markReturnable();
+            return new Update("Select another card to return.", false, false);
+        }
+        else if (card.activationStep === "2") {
+            card.activationStep = "0";
+            return new Update("", true);
+        }
+    }),
     candy: new CardAction("Candy", () => { }),
     ring: new CardAction("Ring", () => { }),
     map: new CardAction("Map", () => { }),
