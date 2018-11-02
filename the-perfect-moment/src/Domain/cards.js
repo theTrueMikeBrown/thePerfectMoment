@@ -2,17 +2,28 @@ import CardState from './cardState';
 import CardAction from './cardAction';
 import Update from './update';
 
+function resetAllStatuses(state) {
+    state.player.revision.forEach(card => { card.resetStatus(); });
+    state.player.equipment.forEach(card => { card.resetStatus(); });
+    state.opponent.equipment.forEach(card => { card.resetStatus(); });
+    state.paradox.forEach(card => { card.resetStatus(); });    
+  }
+
 var CardActions = {
     flowers: new CardAction("Flowers", (gameState, card) => {
-        ///1 game gives control over to action
-        ///2 action checks card status to see where it currently is
-        ///3 action performs update on game to relenquish control
-        ///4 game does stuff
-        ///5 go to 1 if not done
-        gameState.player.equipment.forEach(card => {
-            card.resetStatus();
-            if (card.activationStep === "0" || card.activationStep === "1") { card.swapable = true; }
+        resetAllStatuses(gameState);
+        gameState.player.equipment.forEach(equipmentCard => {
+            if (card.activationStep === "0" || card.activationStep === "1") {
+                equipmentCard.swapable = true;
+                equipmentCard.swapTarget = "player.revision";
+            }
         });
+        gameState.player.revision.forEach(revisionCard => {
+            if (card.activationStep === "0" || card.activationStep === "1") {
+                revisionCard.flippable = true;
+            }
+        });
+
         if (card.activationStep === "0") {
             card.activationStep = "1";
             return new Update("Select an equipped card to swap with your revision.", false, true);

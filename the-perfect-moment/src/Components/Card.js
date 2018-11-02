@@ -9,6 +9,7 @@ class Card extends React.Component {
     this.flip = this.flip.bind(this);
     this.move = this.move.bind(this);
     this.equip = this.equip.bind(this);
+    this.score = this.score.bind(this);
     this.give = this.give.bind(this);
     this.discard = this.discard.bind(this);
     this.return = this.return.bind(this);
@@ -25,7 +26,7 @@ class Card extends React.Component {
     });
   }
 
-  activateCard(card) {
+  activateCard(e) {
     this.props.onActivate({
       card: this.state.card
     });
@@ -38,6 +39,7 @@ class Card extends React.Component {
     });
   }
   equip(e) { e.preventDefault(); this.move("equip"); }
+  score(e) { e.preventDefault(); this.move("score"); }
   give(e) { e.preventDefault(); this.move("give"); }
   discard(e) { e.preventDefault(); this.move("discard"); }
   return(e) { e.preventDefault(); this.move("return"); }
@@ -66,6 +68,8 @@ class Card extends React.Component {
           <img className="actionButton" src={formatImage("flip")} onClick={this.flip} alt="flip card" title="flip card" />}
         {this.state.card.equipable &&
           <img className="actionButton" src={formatImage("equip")} onClick={this.equip} alt="equip card" title="equip card" />}
+        {this.state.card.scorable &&
+          <img className="actionButton" src={formatImage("score")} onClick={this.score} alt="score card" title="score card" />}
         {this.state.card.giveable &&
           <img className="actionButton" src={formatImage("give")} onClick={this.give} alt="give card" title="give card" />}
         {this.state.card.discardable &&

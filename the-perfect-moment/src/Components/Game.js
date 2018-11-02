@@ -11,14 +11,17 @@ class Game extends React.Component {
     super(props);
     this.handleMove = this.handleMove.bind(this);
     this.handleActivate = this.handleActivate.bind(this);
+    this.activate = this.activate.bind(this);
     this.draw = this.draw.bind(this);
     this.abort = this.abort.bind(this);
     this.isCardScorable = this.isCardScorable.bind(this);
     this.isAnyCardScorable = this.isAnyCardScorable.bind(this);
     this.endActionPhase = this.endActionPhase.bind(this);
+    this.doOpponentsTurn = this.doOpponentsTurn.bind(this);
 
     this.state = {
       phase: "setup.equip",
+      subPhase: "",
       message: "Select a card to equip.",
       actionAbortable: false,
       deck: Cards,
@@ -32,7 +35,8 @@ class Game extends React.Component {
         revision: [],
         equipment: [],
         scorePile: []
-      }
+      },
+      activationStack: []
     };
 
     this.shuffle(this.state.deck);
@@ -51,35 +55,64 @@ class Game extends React.Component {
   }
 
   handleActivate(activateData) {
-    var result = activateData.card.action(this.state, activateData.card)
-    //TODO: correct having too much/little equipment
-    var stateCopy = this.state;
-    if (!this.complete) {
-      stateCopy.message = result.message;
-      stateCopy.actionAbortable = this.abortable;
-    }
-    else if (this.state.phase === "action.select.1") {
-      stateCopy.message = "Select another equipment card to activate."
-      stateCopy.actionAbortable = this.abortable;
-      stateCopy.phase = "action.select.2";
-    }
-    else if (this.state.phase === "action.select.2") {
-      this.endActionPhase(stateCopy);
-    }
+    var stateCopy = this.activate(activateData);
+
     this.setState(stateCopy);
   }
 
+  activate(activateData) {
+    var result = activateData.card.action(this.state, activateData.card)
+    //TODO: correct having too much/little equipment
+    var stateCopy = this.state;
+    stateCopy.subPhase = "";
+    if (!result.complete) {
+      stateCopy.message = result.message;
+      stateCopy.actionAbortable = result.abortable;
+      stateCopy.subPhase = "activate.card";
+      stateCopy.activationStack.push(activateData);
+    }
+    else {
+      if (this.state.phase === "action.select.1") {
+        stateCopy.message = "Select another equipment card to activate."
+        stateCopy.actionAbortable = true;
+        stateCopy.phase = "action.select.2";
+      }
+      else if (this.state.phase === "action.select.2") {
+        this.endActionPhase(stateCopy);
+      }
+    }
+    return stateCopy;
+  }
+
+  doOpponentsTurn(stateCopy) {
+    //TODO: opponent's turn here
+    stateCopy.message = "Select an equipment card to activate.";
+    stateCopy.actionAbortable = true;
+    stateCopy.phase = "action.select.1";
+  }
+
   endActionPhase(stateCopy) {
+    stateCopy.subPhase = "";
     if (this.isAnyCardScorable()) {
       stateCopy.message = "Select a card to score.";
       stateCopy.actionAbortable = true;
       stateCopy.phase = "score.card";
+
+      this.state.paradox.forEach(card => {
+        if (this.isCardScorable(card)) {
+          card.resetStatus();
+          card.scorable = true;
+        }
+      });
+      this.state.player.revision.forEach(card => {
+        if (this.isCardScorable(card)) {
+          card.resetStatus();
+          card.scorable = true;
+        }
+      });
     }
     else {
-      //TODO: opponent's turn here
-      stateCopy.message = "Select an equipment card to activate.";
-      stateCopy.actionAbortable = true;
-      stateCopy.phase = "action.select.1";
+      this.doOpponentsTurn(stateCopy);
     }
   }
 
@@ -110,12 +143,9 @@ class Game extends React.Component {
     const target = moveData.target;
 
     this.setState(state => {
-      cardState.equipable = false;
-      cardState.flippable = false;
-      cardState.giveable = false;
-      cardState.discardable = false;
-      cardState.returnable = false;
-      cardState.swapable = false;
+      var swapTarget = cardState.swapTarget;
+      cardState.resetStatus();
+      cardState.swapTarget = swapTarget;
 
       state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
       state.player.equipment = state.player.equipment.filter(card => card.id !== cardState.id);
@@ -139,25 +169,42 @@ class Game extends React.Component {
       else if (target === "return") {
         state.deck.push(cardState);
       }
+      else if (target === "score") {
+        cardState.flipped = true;
+        state.player.scorePile.push(cardState);
+        
+        if (this.state.paradox.length < 1) { this.state.paradox.push(this.draw()); }
+        if (this.state.player.revision.length < 1) { this.state.player.revision.push(this.draw()); }
+        if (this.state.opponent.revision.length < 1) { this.state.opponent.revision.push(this.draw()); }
+      }
+      else if (target === "swap") {
+        if (cardState.swapTarget === "player.revision") {
+          var temp = state.player.revision.pop();
+          state.player.revision.push(cardState);
+          state.player.equipment.push(temp);
+        }
+      }
 
-      var stateCopy = this.state;
-      if (stateCopy.phase === "setup.equip") {
-        stateCopy.phase = "setup.give";
-        stateCopy.message = "Select a card to give to your opponent.";
+      if (state.phase === "setup.equip") {
+        state.phase = "setup.give";
+        state.message = "Select a card to give to your opponent.";
       }
       else if (this.state.phase === "setup.give") {
         state.player.equipment.push(this.draw());
-        stateCopy.phase = "setup.discardOrReturn";
-        stateCopy.message = "Select a card to return to the top of the deck or discard.";
+        state.phase = "setup.discardOrReturn";
+        state.message = "Select a card to return to the top of the deck or discard.";
       }
       else if (this.state.phase === "setup.discardOrReturn") {
-        stateCopy.phase = "action.select.1";
-        stateCopy.message = "Select an equipment card to activate.";
-        stateCopy.actionAbortable = true;
-      } 
-      //vvvvvvvvvvvvvvvvvvvvvvvvv - this is unnecessary, since it will get called elsewhere
-      //this.setState(stateCopy);
-
+        state.phase = "action.select.1";
+        state.message = "Select an equipment card to activate.";
+        state.actionAbortable = true;
+      }
+      else if (this.state.phase.startsWith("action.select") && this.state.subPhase === "activate.card") {
+        state = this.activate(state.activationStack.pop());
+      }
+      else if (this.state.phase === "score.card") {
+        this.doOpponentsTurn(this.state);
+      }
       return state;
     });
   }
@@ -176,10 +223,14 @@ class Game extends React.Component {
   }
 
   abort(e) {
-    e.preventDefault(); 
+    e.preventDefault();
+    var stateCopy = this.state;
     if (this.state.phase.startsWith("action.select")) {
-      var stateCopy = this.state;
       this.endActionPhase(stateCopy);
+      this.setState(stateCopy);
+    }
+    else if (this.state.phase === "score.card") {
+      this.doOpponentsTurn(this.state);
       this.setState(stateCopy);
     }
   }
@@ -212,21 +263,26 @@ class Game extends React.Component {
       });
     }
     else if (this.state.phase === "action.select.1" || this.state.phase === "action.select.2") {
-      this.state.player.revision.forEach(card => {
-        card.resetStatus();
-      });
-      this.state.player.equipment.forEach(card => {
-        card.resetStatus();
-        card.activatable = true;
-      });
-      this.state.opponent.equipment.forEach(card => {
-        card.resetStatus();
-        card.activatable = true;
-      });
-      this.state.paradox.forEach(card => {
-        card.resetStatus();
-        card.activatable = true;
-      });
+      if (this.state.subPhase === "activate.card") {
+        /// the card should have done any state changes already
+      }
+      else {
+        this.state.player.revision.forEach(card => {
+          card.resetStatus();
+        });
+        this.state.player.equipment.forEach(card => {
+          card.resetStatus();
+          card.activatable = true;
+        });
+        this.state.opponent.equipment.forEach(card => {
+          card.resetStatus();
+          card.activatable = true;
+        });
+        this.state.paradox.forEach(card => {
+          card.resetStatus();
+          card.activatable = true;
+        });
+      }
     }
     else if (this.state.phase === "score.card") {
       this.state.player.revision.forEach(card => {
@@ -248,7 +304,7 @@ class Game extends React.Component {
     var abortArea = <div />;
     if (this.state.actionAbortable) {
       abortArea = <div className="actionButtons">
-          <img className="actionButton" src="/img/abort.png" onClick={this.abort} alt="abort" title="Abort" />
+        <img className="actionButton" src="/img/abort.png" onClick={this.abort} alt="abort" title="Abort" />
       </div>;
     }
 
@@ -261,11 +317,11 @@ class Game extends React.Component {
       </div>
       <div>
         <Deck />
-        <Paradox cards={this.state.paradox} onActivate={this.handleActivate} />
+        <Paradox cards={this.state.paradox} onActivate={this.handleActivate} onMove={this.handleMove} />
       </div>
       <div>
-        <ScorePile />
-        <Equipment cards={this.state.player.equipment} onActivate={this.handleActivate} />
+        <ScorePile cards={this.state.player.scorePile} onMove={this.handleMove} />
+        <Equipment cards={this.state.player.equipment} onActivate={this.handleActivate} onMove={this.handleMove} />
         <Revision cards={this.state.player.revision} onMove={this.handleMove} />
       </div>
       {abortArea}

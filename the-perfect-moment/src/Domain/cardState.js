@@ -20,6 +20,8 @@ class CardState {
     this.returnable = false;
     this.activatable = false;
     this.swapable = false;
+    this.scorable = false;
+    this.swapTarget = "";
   }
 
   action(gameState, card) {

@@ -1,5 +1,5 @@
 class Update {
-    constructor(message, complete, abortable = false) {
+    constructor(message, complete = false, abortable = false) {
       this.message = message;
       this.complete = complete;
       this.abortable = abortable;
