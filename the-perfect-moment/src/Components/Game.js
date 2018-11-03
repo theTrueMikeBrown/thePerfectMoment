@@ -18,6 +18,8 @@ class Game extends React.Component {
     this.isAnyCardScorable = this.isAnyCardScorable.bind(this);
     this.endActionPhase = this.endActionPhase.bind(this);
     this.doOpponentsTurn = this.doOpponentsTurn.bind(this);
+    this.requiresCleanup = this.requiresCleanup.bind(this);
+    this.cleanup = this.cleanup.bind(this);
 
     this.state = {
       phase: "setup.equip",
@@ -55,6 +57,7 @@ class Game extends React.Component {
   }
 
   handleActivate(activateData) {
+    activateData.card.activationStep = "0";
     var stateCopy = this.activate(activateData);
 
     this.setState(stateCopy);
@@ -62,7 +65,6 @@ class Game extends React.Component {
 
   activate(activateData) {
     var result = activateData.card.action(this.state, activateData.card)
-    //TODO: correct having too much/little equipment
     var stateCopy = this.state;
     stateCopy.subPhase = "";
     if (!result.complete) {
@@ -72,7 +74,11 @@ class Game extends React.Component {
       stateCopy.activationStack.push(activateData);
     }
     else {
-      if (this.state.phase === "action.select.1") {
+      if (this.requiresCleanup(stateCopy)) {
+        this.cleanup(stateCopy);
+        stateCopy.activationStack.push(activateData);
+      }
+      else if (this.state.phase === "action.select.1") {
         stateCopy.message = "Select another equipment card to activate."
         stateCopy.actionAbortable = true;
         stateCopy.phase = "action.select.2";
@@ -84,6 +90,19 @@ class Game extends React.Component {
     return stateCopy;
   }
 
+  requiresCleanup(stateCopy) {
+    return stateCopy.player.revision.length !== 1 || stateCopy.player.equipment.length !== 2 ||
+    stateCopy.opponent.revision.length !== 1 || stateCopy.opponent.equipment.length !== 2;
+  }
+
+  cleanup(stateCopy) {
+    if (stateCopy.player.revision.length > 1) {      
+      stateCopy.message = "Equip a card from your hand."
+      stateCopy.actionAbortable = false;
+      stateCopy.subPhase = "cleanup";
+    }
+  }
+
   doOpponentsTurn(stateCopy) {
     //TODO: opponent's turn here
     stateCopy.message = "Select an equipment card to activate.";
@@ -93,6 +112,7 @@ class Game extends React.Component {
 
   endActionPhase(stateCopy) {
     stateCopy.subPhase = "";
+    debugger;
     if (this.isAnyCardScorable()) {
       stateCopy.message = "Select a card to score.";
       stateCopy.actionAbortable = true;
@@ -156,8 +176,22 @@ class Game extends React.Component {
       state.paradox = state.paradox.filter(card => card.id !== cardState.id);
       state.deck = state.deck.filter(card => card.id !== cardState.id);
 
+      //todo: run this everywhere that adds stuff to places with empties.
+      var cleanEmpties = function(collection, count) {
+        while (collection.length > count) {
+          var index = collection.findIndex(x=>x.name === "empty");
+          if (index !== -1){
+            collection.splice(index, 1);
+          }
+          else {
+            break;
+          }
+        }
+      }
+
       if (target === "equip") {
         state.player.equipment.push(cardState);
+        cleanEmpties(state.player.equipment, 2);
       }
       else if (target === "give") {
         state.opponent.equipment.push(cardState);
@@ -199,7 +233,8 @@ class Game extends React.Component {
         state.message = "Select an equipment card to activate.";
         state.actionAbortable = true;
       }
-      else if (this.state.phase.startsWith("action.select") && this.state.subPhase === "activate.card") {
+      else if (this.state.phase.startsWith("action.select") && 
+        (this.state.subPhase === "activate.card" || this.state.subPhase === "cleanup")) {
         state = this.activate(state.activationStack.pop());
       }
       else if (this.state.phase === "score.card") {
@@ -262,9 +297,24 @@ class Game extends React.Component {
         card.returnable = true;
       });
     }
-    else if (this.state.phase === "action.select.1" || this.state.phase === "action.select.2") {
+    else if (this.state.phase.startsWith("action.select")) {
       if (this.state.subPhase === "activate.card") {
         /// the card should have done any state changes already
+      }
+      else if (this.state.subPhase === "cleanup") {
+        this.state.player.revision.forEach(card => {
+          card.resetStatus();
+          card.equipable = true;
+        });
+        this.state.player.equipment.forEach(card => {
+          card.resetStatus();
+        });
+        this.state.opponent.equipment.forEach(card => {
+          card.resetStatus();
+        });
+        this.state.paradox.forEach(card => {
+          card.resetStatus();
+        });
       }
       else {
         this.state.player.revision.forEach(card => {

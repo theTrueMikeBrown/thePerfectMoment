@@ -33,7 +33,7 @@ var CardActions = {
             return new Update("Select another equipped card to swap with your revision.", false, true);
         }
         else if (card.activationStep === "2") {
-            card.activationStep = "0";
+            card.activationStep = "3";
             return new Update("", true);
         }
     }),
@@ -64,7 +64,7 @@ var CardActions = {
             return new Update("Select another card to return.", false, false);
         }
         else if (card.activationStep === "2") {
-            card.activationStep = "0";
+            card.activationStep = "3";
             return new Update("", true);
         }
     }),
