@@ -3,6 +3,7 @@ class CardState {
   constructor(name = "empty", action1 = null, action2 = null) {
     this.name = name;
     this.flipped = false;
+    this.isOpponents = false;
     this.hidden = false;
     this.action1 = action1;
     this.action2 = action2;
@@ -21,15 +22,26 @@ class CardState {
     this.activatable = false;
     this.swapable = false;
     this.scorable = false;
+    this.isOpponents = false;
     this.swapTarget = "";
   }
 
   action(gameState, card) {
-    if (this.flipped) {
-      return this.action1.action(gameState, card);
+    if (!this.isOpponents) {
+      if (this.flipped) {
+        return this.action1.action(gameState, card);
+      }
+      else {
+        return this.action2.action(gameState, card);
+      }
     }
     else {
-      return this.action2.action(gameState, card);
+      if (this.flipped) {
+        return this.action2.action(gameState, card);
+      }
+      else {
+        return this.action1.action(gameState, card);
+      }
     }
   }
 }

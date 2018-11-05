@@ -36,7 +36,7 @@ var CardActions = {
             card.activationStep = "3";
             return new Update("", true);
         }
-    }),
+    }), //up to 2 times: swap an equipped card with your revision.
     poetry: new CardAction("Poetry", (gameState, card) => {
         resetAllStatuses(gameState);
 
@@ -67,17 +67,92 @@ var CardActions = {
             card.activationStep = "3";
             return new Update("", true);
         }
-    }),
-    candy: new CardAction("Candy", () => { }),
-    ring: new CardAction("Ring", () => { }),
-    map: new CardAction("Map", () => { }),
-    disguise: new CardAction("Disguise", () => { }),
-    gun: new CardAction("Gun", () => { }),
-    armor: new CardAction("Armor", () => { }),
-    keys: new CardAction("Keys", () => { }),
-    phone: new CardAction("Phone", () => { }),
-    wallet: new CardAction("Wallet", () => { }),
-    tickets: new CardAction("Tickets", () => { }),
+    }), //draw 2 cards. Return 2 cards.
+    candy: new CardAction("Candy", (gameState, card) => { }), //Draw 2 cards: equip 1, discard the other. Return an equipped card.
+    ring: new CardAction("Ring", (gameState, card) => { }), //You and your opponent each select and trade a card.
+    map: new CardAction("Map", (gameState, card) => {
+        resetAllStatuses(gameState);
+        gameState.player.equipment.forEach(equipmentCard => {
+            if (card.activationStep === "0" || card.activationStep === "1") {
+                equipmentCard.flippable = true;
+                equipmentCard.swapTarget = "player.revision";
+            }
+        });
+
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+            return new Update("Select an equipped card rotate.", false, true);
+        }
+        else if (card.activationStep === "1") {
+            card.activationStep = "2";
+            return new Update("Select another equipped card to rotate.", false, true);
+        }
+        else if (card.activationStep === "2") {
+            card.activationStep = "3";
+            return new Update("", true);
+        }        
+     }), //Rotate 1 or 2 of your equipment cards
+    disguise: new CardAction("Disguise", (gameState, card) => {        
+        resetAllStatuses(gameState);
+
+        var markDiscardable = function () {
+            gameState.player.equipment.forEach(equipmentCard => {
+                equipmentCard.discardable = true;
+            });
+            gameState.player.revision.forEach(revisionCard => {
+                revisionCard.discardable = true;
+            });
+        };
+
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+
+            gameState.player.revision.push(gameState.deck.pop());
+
+            markDiscardable();
+            return new Update("Select a card to discard.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            card.activationStep = "2";
+            return new Update("", true);
+        }
+     }), //Draw a card. Discard a card.
+    gun: new CardAction("Gun", (gameState, card) => { }), //Look at the top two cards of the deck. Return or discard them
+    armor: new CardAction("Armor", (gameState, card) => { }), //Your opponent may score their revision for 1 point. Activate one of their items 2x.
+    keys: new CardAction("Keys", (gameState, card) => { }), //Draw a card. Return an equipped card. Equip a card and activate it.
+    phone: new CardAction("Phone", (gameState, card) => {
+        resetAllStatuses(gameState);
+
+        var markDiscardable = function () {
+            gameState.player.equipment.forEach(equipmentCard => {
+                equipmentCard.discardable = true;
+            });
+            gameState.player.revision.forEach(revisionCard => {
+                revisionCard.discardable = true;
+            });
+        };
+
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+            markDiscardable();
+            return new Update("Select a card to discard.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            card.activationStep = "2";
+            markDiscardable();
+            return new Update("Select another card to discard.", false, false);
+        }
+        else if (card.activationStep === "2") {
+            card.activationStep = "3";
+
+            gameState.player.revision.push(gameState.deck.pop());
+            gameState.player.revision.push(gameState.deck.pop());
+
+            return new Update("", true);
+        }
+     }), //Discard 2 cards. Draw 2 cards.
+    wallet: new CardAction("Wallet", (gameState, card) => { }), //Rotate one of your opponent's equipment.
+    tickets: new CardAction("Tickets", (gameState, card) => { }), //Look at the top 4 cards of the deck. Return them in any order.
 };
 
 var Cards = [

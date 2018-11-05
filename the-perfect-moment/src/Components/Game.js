@@ -43,8 +43,12 @@ class Game extends React.Component {
 
     this.shuffle(this.state.deck);
 
-    this.state.opponent.revision.push(this.draw());
-    this.state.opponent.equipment.push(this.draw());
+    var tmp = this.draw();
+    tmp.isOpponents = true;
+    this.state.opponent.revision.push(tmp);
+    tmp = this.draw();
+    tmp.isOpponents = true;
+    this.state.opponent.equipment.push(tmp);    
     this.state.paradox.push(this.draw());
     this.state.player.revision.push(this.draw());
     this.state.player.revision.push(this.draw());
@@ -67,6 +71,9 @@ class Game extends React.Component {
     var result = activateData.card.action(this.state, activateData.card)
     var stateCopy = this.state;
     stateCopy.subPhase = "";
+    if (!result) {
+      debugger;
+    }
     if (!result.complete) {
       stateCopy.message = result.message;
       stateCopy.actionAbortable = result.abortable;
@@ -176,7 +183,6 @@ class Game extends React.Component {
       state.paradox = state.paradox.filter(card => card.id !== cardState.id);
       state.deck = state.deck.filter(card => card.id !== cardState.id);
 
-      //todo: run this everywhere that adds stuff to places with empties.
       var cleanEmpties = function(collection, count) {
         while (collection.length > count) {
           var index = collection.findIndex(x=>x.name === "empty");
@@ -194,7 +200,9 @@ class Game extends React.Component {
         cleanEmpties(state.player.equipment, 2);
       }
       else if (target === "give") {
-        state.opponent.equipment.push(cardState);
+        cardState.isOpponents = true;
+        state.opponent.equipment.push(cardState);        
+        cleanEmpties(state.opponent.equipment, 2);
         cardState.flipped = !cardState.flipped;
       }
       else if (target === "discard") {
@@ -209,7 +217,9 @@ class Game extends React.Component {
         
         if (this.state.paradox.length < 1) { this.state.paradox.push(this.draw()); }
         if (this.state.player.revision.length < 1) { this.state.player.revision.push(this.draw()); }
-        if (this.state.opponent.revision.length < 1) { this.state.opponent.revision.push(this.draw()); }
+        var tmp = this.draw();
+        tmp.isOpponents = true;
+        if (this.state.opponent.revision.length < 1) { this.state.opponent.revision.push(tmp); }
       }
       else if (target === "swap") {
         if (cardState.swapTarget === "player.revision") {
@@ -274,6 +284,7 @@ class Game extends React.Component {
     this.state.opponent.revision.forEach(card => {
       card.resetStatus();
       card.hidden = true;
+      card.isOpponents = true;
     });
 
     if (this.state.phase === "setup.equip") {
@@ -311,6 +322,7 @@ class Game extends React.Component {
         });
         this.state.opponent.equipment.forEach(card => {
           card.resetStatus();
+          card.isOpponents = true;
         });
         this.state.paradox.forEach(card => {
           card.resetStatus();
@@ -327,6 +339,7 @@ class Game extends React.Component {
         this.state.opponent.equipment.forEach(card => {
           card.resetStatus();
           card.activatable = true;
+          card.isOpponents = true;
         });
         this.state.paradox.forEach(card => {
           card.resetStatus();
@@ -344,6 +357,7 @@ class Game extends React.Component {
       });
       this.state.opponent.equipment.forEach(card => {
         card.resetStatus();
+        card.isOpponents = true;
       });
       this.state.paradox.forEach(card => {
         card.resetStatus();
