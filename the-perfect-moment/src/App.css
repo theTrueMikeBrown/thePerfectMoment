@@ -39,11 +39,37 @@
   bottom: 0;
 }
 
+.actionButtons.displayAlways {
+  display: block;
+}
+
+.game {
+  position: relative;
+}
+
+.selection {
+  display: none;
+}
+
+.selection.visible {
+  display: block;
+}
+
 .actionButton {  
   height: 3em;
   width: 3em;
   cursor: pointer;
 }
+
+.bigAbort {
+  position: absolute;
+  height: 1em;
+  width: 1em;
+  background: indianred;
+  border-radius: 2em;
+  border: 1px solid black;
+}
+
 
 div.rotate90 + .actionButtons, div.rotate270 + .actionButtons {
   right: -2em;

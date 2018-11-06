@@ -4,6 +4,7 @@ import ScorePile from './ScorePile';
 import Paradox from './Paradox';
 import Equipment from './Equipment';
 import Revision from './Revision';
+import Selection from './Selection';
 import Cards from '../Domain/cards';
 
 class Game extends React.Component {
@@ -38,7 +39,8 @@ class Game extends React.Component {
         equipment: [],
         scorePile: []
       },
-      activationStack: []
+      activationStack: [],
+      selection: []
     };
 
     this.shuffle(this.state.deck);
@@ -48,7 +50,7 @@ class Game extends React.Component {
     this.state.opponent.revision.push(tmp);
     tmp = this.draw();
     tmp.isOpponents = true;
-    this.state.opponent.equipment.push(tmp);    
+    this.state.opponent.equipment.push(tmp);
     this.state.paradox.push(this.draw());
     this.state.player.revision.push(this.draw());
     this.state.player.revision.push(this.draw());
@@ -73,6 +75,7 @@ class Game extends React.Component {
     stateCopy.subPhase = "";
     if (!result) {
       debugger;
+      return;
     }
     if (!result.complete) {
       stateCopy.message = result.message;
@@ -99,11 +102,11 @@ class Game extends React.Component {
 
   requiresCleanup(stateCopy) {
     return stateCopy.player.revision.length !== 1 || stateCopy.player.equipment.length !== 2 ||
-    stateCopy.opponent.revision.length !== 1 || stateCopy.opponent.equipment.length !== 2;
+      stateCopy.opponent.revision.length !== 1 || stateCopy.opponent.equipment.length !== 2;
   }
 
   cleanup(stateCopy) {
-    if (stateCopy.player.revision.length > 1) {      
+    if (stateCopy.player.revision.length > 1) {
       stateCopy.message = "Equip a card from your hand."
       stateCopy.actionAbortable = false;
       stateCopy.subPhase = "cleanup";
@@ -119,7 +122,6 @@ class Game extends React.Component {
 
   endActionPhase(stateCopy) {
     stateCopy.subPhase = "";
-    debugger;
     if (this.isAnyCardScorable()) {
       stateCopy.message = "Select a card to score.";
       stateCopy.actionAbortable = true;
@@ -170,9 +172,19 @@ class Game extends React.Component {
     const target = moveData.target;
 
     this.setState(state => {
+
       var swapTarget = cardState.swapTarget;
       cardState.resetStatus();
       cardState.swapTarget = swapTarget;
+
+      if (target === "flip") {
+        cardState.flipped = !cardState.flipped;
+        if (this.state.phase.startsWith("action.select") &&
+          (this.state.subPhase === "activate.card" || this.state.subPhase === "cleanup")) {
+          state = this.activate(state.activationStack.pop());
+        }
+        return cardState;
+      }
 
       state.player.revision = state.player.revision.filter(card => card.id !== cardState.id);
       state.player.equipment = state.player.equipment.filter(card => card.id !== cardState.id);
@@ -183,10 +195,10 @@ class Game extends React.Component {
       state.paradox = state.paradox.filter(card => card.id !== cardState.id);
       state.deck = state.deck.filter(card => card.id !== cardState.id);
 
-      var cleanEmpties = function(collection, count) {
+      var cleanEmpties = function (collection, count) {
         while (collection.length > count) {
-          var index = collection.findIndex(x=>x.name === "empty");
-          if (index !== -1){
+          var index = collection.findIndex(x => x.name === "empty");
+          if (index !== -1) {
             collection.splice(index, 1);
           }
           else {
@@ -201,7 +213,7 @@ class Game extends React.Component {
       }
       else if (target === "give") {
         cardState.isOpponents = true;
-        state.opponent.equipment.push(cardState);        
+        state.opponent.equipment.push(cardState);
         cleanEmpties(state.opponent.equipment, 2);
         cardState.flipped = !cardState.flipped;
       }
@@ -214,7 +226,7 @@ class Game extends React.Component {
       else if (target === "score") {
         cardState.flipped = true;
         state.player.scorePile.push(cardState);
-        
+
         if (this.state.paradox.length < 1) { this.state.paradox.push(this.draw()); }
         if (this.state.player.revision.length < 1) { this.state.player.revision.push(this.draw()); }
         var tmp = this.draw();
@@ -235,6 +247,7 @@ class Game extends React.Component {
       }
       else if (this.state.phase === "setup.give") {
         state.player.equipment.push(this.draw());
+        cleanEmpties(state.player.equipment, 2);
         state.phase = "setup.discardOrReturn";
         state.message = "Select a card to return to the top of the deck or discard.";
       }
@@ -243,7 +256,7 @@ class Game extends React.Component {
         state.message = "Select an equipment card to activate.";
         state.actionAbortable = true;
       }
-      else if (this.state.phase.startsWith("action.select") && 
+      else if (this.state.phase.startsWith("action.select") &&
         (this.state.subPhase === "activate.card" || this.state.subPhase === "cleanup")) {
         state = this.activate(state.activationStack.pop());
       }
@@ -316,6 +329,7 @@ class Game extends React.Component {
         this.state.player.revision.forEach(card => {
           card.resetStatus();
           card.equipable = true;
+          card.flippable = true;
         });
         this.state.player.equipment.forEach(card => {
           card.resetStatus();
@@ -367,17 +381,15 @@ class Game extends React.Component {
 
     var abortArea = <div />;
     if (this.state.actionAbortable) {
-      abortArea = <div className="actionButtons">
-        <img className="actionButton" src="/img/abort.png" onClick={this.abort} alt="abort" title="Abort" />
-      </div>;
+      abortArea = <img className="bigAbort actionButton" src="/img/abort.png" onClick={this.abort} alt="abort" title="Abort" />;
     }
 
     return (<div className="game">
-      <h2>{this.state.message}</h2>
+      <h2>{this.state.message}&nbsp;&nbsp;{abortArea}</h2>
       <div>
-        <Revision flipped cards={this.state.opponent.revision} />
-        <Equipment flipped cards={this.state.opponent.equipment} onActivate={this.handleActivate} />
-        <ScorePile flipped />
+        <Revision flipped cards={this.state.opponent.revision} onMove={this.handleMove} />
+        <Equipment flipped cards={this.state.opponent.equipment} onActivate={this.handleActivate} onMove={this.handleMove} />
+        <ScorePile flipped onMove={this.handleMove} />
       </div>
       <div>
         <Deck />
@@ -387,8 +399,8 @@ class Game extends React.Component {
         <ScorePile cards={this.state.player.scorePile} onMove={this.handleMove} />
         <Equipment cards={this.state.player.equipment} onActivate={this.handleActivate} onMove={this.handleMove} />
         <Revision cards={this.state.player.revision} onMove={this.handleMove} />
+        <Selection cards={this.state.selection} onMove={this.handleMove} />
       </div>
-      {abortArea}
     </div>);
   }
 }

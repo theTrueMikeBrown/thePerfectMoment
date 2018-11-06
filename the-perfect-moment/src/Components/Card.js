@@ -18,14 +18,6 @@ class Card extends React.Component {
     this.state.card.resetStatus();
   }
 
-  flip(e) {
-    e.preventDefault();
-    this.setState(state => {
-      state.card.flipped = !state.card.flipped;
-      return state;
-    });
-  }
-
   activateCard(e) {
     this.props.onActivate({
       card: this.state.card
@@ -44,6 +36,7 @@ class Card extends React.Component {
   discard(e) { e.preventDefault(); this.move("discard"); }
   return(e) { e.preventDefault(); this.move("return"); }
   swap(e) { e.preventDefault(); this.move("swap"); }
+  flip(e) { e.preventDefault(); this.move("flip"); }
   activate(e) { e.preventDefault(); this.activateCard(); }
 
   render() {
