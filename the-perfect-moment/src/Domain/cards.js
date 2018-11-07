@@ -203,13 +203,37 @@ var CardActions = {
         return new Update("", true);
     }),
     gun: new CardAction("Gun", (gameState, card) => { //Look at the top two cards of the deck. Return or discard them
-//TODO: this
+        resetAllStatuses(gameState);
+
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+
+            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.deck.pop());
+
+            gameState.selection.forEach(card => {
+                card.returnable = true;
+                card.discardable = true;
+            });
+            return new Update("Return or discard the selected cards.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            if (gameState.selection.length > 0) {
+                gameState.selection.forEach(card => {
+                    card.returnable = true;
+                    card.discardable = true;
+                });
+                return new Update("Return or discard the selected cards.", false, false);
+            }
+            card.activationStep = "99";
+        }
+        return new Update("", true);
     }),
     armor: new CardAction("Armor", (gameState, card) => { //Your opponent may score their revision for 1 point. Activate one of their items 2x.
-//TODO: this
+        //TODO: this
     }),
     keys: new CardAction("Keys", (gameState, card) => { //Draw a card. Return an equipped card. Equip a card and activate it.
-//TODO: this
+        //TODO: this
     }),
     phone: new CardAction("Phone", (gameState, card) => { //Discard 2 cards. Draw 2 cards.
         resetAllStatuses(gameState);
@@ -280,7 +304,7 @@ var CardActions = {
                     card.returnable = true;
                 });
                 return new Update("Return the selected cards in any order.", false, false);
-            }            
+            }
             card.activationStep = "99";
         }
         return new Update("", true);
