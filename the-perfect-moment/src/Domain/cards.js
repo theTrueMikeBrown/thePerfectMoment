@@ -68,13 +68,48 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    candy: new CardAction("Candy", (gameState, card) => { }), //Draw 2 cards: equip 1, discard the other. Return an equipped card.
-    ring: new CardAction("Ring", (gameState, card) => { //You and your opponent each select and trade a card.
+    candy: new CardAction("Candy", (gameState, card) => { //Draw 2 cards: equip 1, discard the other. Return an equipped card.
         resetAllStatuses(gameState);
-    
+
         if (card.activationStep === "0") {
             card.activationStep = "1";
-    
+
+            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.deck.pop());
+
+            gameState.selection.forEach(card => {
+                card.equipable = true;
+                card.flippable = true;
+            });
+            return new Update("Equip one of the selected cards. The other will be discarded.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            if (gameState.selection.length === 1) {
+                gameState.deck.unshift(gameState.selection.pop());
+                card.activationStep = "2";
+            }
+            else {
+                gameState.selection.forEach(card => {
+                    card.equipable = true;
+                    card.flippable = true;
+                });
+                return new Update("Equip one of the selected cards. The other will be discarded.", false, false);
+            }
+        } if (card.activationStep === "2") {
+            gameState.player.equipment.forEach(card => {
+                card.returnable = true;
+            });
+            card.activationStep = "99";
+            return new Update("Return an equipped card.", false, false);
+        }
+        return new Update("", true);
+    }),
+    ring: new CardAction("Ring", (gameState, card) => { //You and your opponent each select and trade a card.
+        resetAllStatuses(gameState);
+
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+
             gameState.opponent.equipment.forEach(equipmentCard => {
                 equipmentCard.tradeable = true;
                 equipmentCard.swapTarget = "selection.player.revision";
@@ -88,7 +123,7 @@ var CardActions = {
         else if (card.activationStep === "1") {
             card.activationStep = "2";
 
-            var target = (gameState.opponent.equipment.length < 2) ? 
+            var target = (gameState.opponent.equipment.length < 2) ?
                 "selection.opponent.equipment" :
                 "selection.opponent.revision";
 
@@ -99,12 +134,12 @@ var CardActions = {
             gameState.player.revision.forEach(revisionCard => {
                 revisionCard.tradeable = true;
                 revisionCard.swapTarget = target;
-            });    
+            });
             return new Update("Select a card to trade with your opponent.", false, false);
         }
         else if (card.activationStep === "2") {
             //allow selection cards to be rotated and then sent along.
-            
+
             gameState.selection.forEach(equipmentCard => {
                 equipmentCard.flippable = true;
                 if (equipmentCard.swapTarget.startsWith("selection.opponent")) {
@@ -169,9 +204,15 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    gun: new CardAction("Gun", (gameState, card) => { }), //Look at the top two cards of the deck. Return or discard them
-    armor: new CardAction("Armor", (gameState, card) => { }), //Your opponent may score their revision for 1 point. Activate one of their items 2x.
-    keys: new CardAction("Keys", (gameState, card) => { }), //Draw a card. Return an equipped card. Equip a card and activate it.
+    gun: new CardAction("Gun", (gameState, card) => { //Look at the top two cards of the deck. Return or discard them
+
+    }),
+    armor: new CardAction("Armor", (gameState, card) => { //Your opponent may score their revision for 1 point. Activate one of their items 2x.
+
+    }),
+    keys: new CardAction("Keys", (gameState, card) => { //Draw a card. Return an equipped card. Equip a card and activate it.
+
+    }),
     phone: new CardAction("Phone", (gameState, card) => { //Discard 2 cards. Draw 2 cards.
         resetAllStatuses(gameState);
 
@@ -219,7 +260,9 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    tickets: new CardAction("Tickets", (gameState, card) => { }), //Look at the top 4 cards of the deck. Return them in any order.
+    tickets: new CardAction("Tickets", (gameState, card) => { //Look at the top 4 cards of the deck. Return them in any order.
+
+    }),
 };
 
 var Cards = [

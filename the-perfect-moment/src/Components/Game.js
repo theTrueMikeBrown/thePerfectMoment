@@ -151,7 +151,7 @@ class Game extends React.Component {
         return true;
       }
     }
-    for (var j = 0; j < this.state.player.revision; j++) {
+    for (var j = 0; j < this.state.player.revision.length; j++) {
       if (this.isCardScorable(this.state.player.revision[j])) {
         return true;
       }
@@ -232,9 +232,12 @@ class Game extends React.Component {
 
         if (this.state.paradox.length < 1) { this.state.paradox.push(this.draw()); }
         if (this.state.player.revision.length < 1) { this.state.player.revision.push(this.draw()); }
-        var tmp = this.draw();
-        tmp.isOpponents = true;
-        if (this.state.opponent.revision.length < 1) { this.state.opponent.revision.push(tmp); }
+
+        if (this.state.opponent.revision.length < 1) {
+          var tmp = this.draw();
+          tmp.isOpponents = true;
+          this.state.opponent.revision.push(tmp);
+        }
       }
       else if (target === "swap") {
         if (cardState.swapTarget === "player.revision") {
