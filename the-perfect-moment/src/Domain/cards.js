@@ -138,8 +138,6 @@ var CardActions = {
             return new Update("Select a card to trade with your opponent.", false, false);
         }
         else if (card.activationStep === "2") {
-            //allow selection cards to be rotated and then sent along.
-
             gameState.selection.forEach(equipmentCard => {
                 equipmentCard.flippable = true;
                 if (equipmentCard.swapTarget.startsWith("selection.opponent")) {
@@ -205,13 +203,13 @@ var CardActions = {
         return new Update("", true);
     }),
     gun: new CardAction("Gun", (gameState, card) => { //Look at the top two cards of the deck. Return or discard them
-
+//TODO: this
     }),
     armor: new CardAction("Armor", (gameState, card) => { //Your opponent may score their revision for 1 point. Activate one of their items 2x.
-
+//TODO: this
     }),
     keys: new CardAction("Keys", (gameState, card) => { //Draw a card. Return an equipped card. Equip a card and activate it.
-
+//TODO: this
     }),
     phone: new CardAction("Phone", (gameState, card) => { //Discard 2 cards. Draw 2 cards.
         resetAllStatuses(gameState);
@@ -261,7 +259,31 @@ var CardActions = {
         return new Update("", true);
     }),
     tickets: new CardAction("Tickets", (gameState, card) => { //Look at the top 4 cards of the deck. Return them in any order.
+        resetAllStatuses(gameState);
 
+        if (card.activationStep === "0") {
+            card.activationStep = "1";
+
+            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.deck.pop());
+
+            gameState.selection.forEach(card => {
+                card.returnable = true;
+            });
+            return new Update("Return the selected cards in any order.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            if (gameState.selection.length > 0) {
+                gameState.selection.forEach(card => {
+                    card.returnable = true;
+                });
+                return new Update("Return the selected cards in any order.", false, false);
+            }            
+            card.activationStep = "99";
+        }
+        return new Update("", true);
     }),
 };
 
