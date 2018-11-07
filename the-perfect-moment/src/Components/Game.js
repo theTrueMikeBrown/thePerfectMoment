@@ -192,6 +192,7 @@ class Game extends React.Component {
       state.opponent.revision = state.opponent.revision.filter(card => card.id !== cardState.id);
       state.opponent.equipment = state.opponent.equipment.filter(card => card.id !== cardState.id);
       state.opponent.scorePile = state.opponent.scorePile.filter(card => card.id !== cardState.id);
+      state.selection = state.selection.filter(card => card.id !== cardState.id);
       state.paradox = state.paradox.filter(card => card.id !== cardState.id);
       state.deck = state.deck.filter(card => card.id !== cardState.id);
 
@@ -213,9 +214,11 @@ class Game extends React.Component {
       }
       else if (target === "give") {
         cardState.isOpponents = true;
+        cardState.flipped = !cardState.flipped;
+        //TODO: if equipment has vacant slot
         state.opponent.equipment.push(cardState);
         cleanEmpties(state.opponent.equipment, 2);
-        cardState.flipped = !cardState.flipped;
+        //TODO: else put it in the hand
       }
       else if (target === "discard") {
         state.deck.unshift(cardState);
@@ -238,6 +241,16 @@ class Game extends React.Component {
           var temp = state.player.revision.pop();
           state.player.revision.push(cardState);
           state.player.equipment.push(temp);
+        }
+      }
+      else if (target === "trade") {
+        if (cardState.swapTarget.startsWith("selection")) {
+          state.selection.push(cardState);
+        }
+      }
+      else if (target === "take") {
+        if (cardState.swapTarget === "selection.player.revision") {
+          state.player.revision.push(cardState);
         }
       }
 

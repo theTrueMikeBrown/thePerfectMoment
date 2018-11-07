@@ -17,8 +17,10 @@ class CardState {
     this.flippable = false;
     this.equipable = false;
     this.giveable = false;
+    this.takeable = false;
     this.discardable = false;
     this.returnable = false;
+    this.tradeable = false;
     this.activatable = false;
     this.swapable = false;
     this.scorable = false;

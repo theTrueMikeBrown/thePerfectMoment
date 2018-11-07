@@ -83,12 +83,14 @@ var CardActions = {
                 revisionCard.tradeable = true;
                 revisionCard.swapTarget = "selection.player.revision";
             });
-            return new Update("Select a card for your opponent to trade with you.", false, true);
+            return new Update("Select a card for your opponent to trade with you.", false, false);
         }
         else if (card.activationStep === "1") {
             card.activationStep = "2";
 
-            var target = (gameState.opponent.equipment.length < 2) ? "selection.opponent.equipment" : "selection.opponent.revision";
+            var target = (gameState.opponent.equipment.length < 2) ? 
+                "selection.opponent.equipment" :
+                "selection.opponent.revision";
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.tradeable = true;
@@ -98,10 +100,24 @@ var CardActions = {
                 revisionCard.tradeable = true;
                 revisionCard.swapTarget = target;
             });    
-            return new Update("Select a card to trade with your opponent.", false, true);
+            return new Update("Select a card to trade with your opponent.", false, false);
         }
         else if (card.activationStep === "2") {
-//allow selection cards to be rotated and then sent along.
+            //allow selection cards to be rotated and then sent along.
+            
+            gameState.selection.forEach(equipmentCard => {
+                equipmentCard.flippable = true;
+                if (equipmentCard.swapTarget.startsWith("selection.opponent")) {
+                    equipmentCard.giveable = true;
+                }
+                else {
+                    equipmentCard.takeable = true;
+                }
+            });
+
+            if (gameState.selection.length > 0) {
+                return new Update("Rotate the cards if necessary, and then return them to their new homes.", false, false);
+            }
 
             card.activationStep = "99";
         }
@@ -117,7 +133,7 @@ var CardActions = {
 
         if (card.activationStep === "0") {
             card.activationStep = "1";
-            return new Update("Select an equipped card to rotate.", false, true);
+            return new Update("Select an equipped card to rotate.", false, false);
         }
         if (card.activationStep === "1") {
             card.activationStep = "2";
@@ -196,7 +212,7 @@ var CardActions = {
 
         if (card.activationStep === "0") {
             card.activationStep = "1";
-            return new Update("Select an opponent's equipped card to rotate.", false, true);
+            return new Update("Select an opponent's equipped card to rotate.", false, false);
         }
         else if (card.activationStep === "1") {
             card.activationStep = "99";

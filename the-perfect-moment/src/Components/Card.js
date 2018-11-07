@@ -11,6 +11,8 @@ class Card extends React.Component {
     this.equip = this.equip.bind(this);
     this.score = this.score.bind(this);
     this.give = this.give.bind(this);
+    this.take = this.take.bind(this);
+    this.trade = this.trade.bind(this);
     this.discard = this.discard.bind(this);
     this.return = this.return.bind(this);
     this.swap = this.swap.bind(this);
@@ -33,6 +35,8 @@ class Card extends React.Component {
   equip(e) { e.preventDefault(); this.move("equip"); }
   score(e) { e.preventDefault(); this.move("score"); }
   give(e) { e.preventDefault(); this.move("give"); }
+  take(e) { e.preventDefault(); this.move("take"); }
+  trade(e) { e.preventDefault(); this.move("trade"); }
   discard(e) { e.preventDefault(); this.move("discard"); }
   return(e) { e.preventDefault(); this.move("return"); }
   swap(e) { e.preventDefault(); this.move("swap"); }
@@ -65,6 +69,10 @@ class Card extends React.Component {
           <img className="actionButton" src={formatImage("score")} onClick={this.score} alt="score card" title="score card" />}
         {this.state.card.giveable &&
           <img className="actionButton" src={formatImage("give")} onClick={this.give} alt="give card" title="give card" />}
+        {this.state.card.takeable &&
+          <img className="actionButton" src={formatImage("take")} onClick={this.take} alt="take card" title="take card" />}
+        {this.state.card.tradeable &&
+          <img className="actionButton" src={formatImage("trade")} onClick={this.trade} alt="trade card" title="trade card" />}
         {this.state.card.discardable &&
           <img className="actionButton" src={formatImage("discard")} onClick={this.discard} alt="discard card" title="discard card" />}
         {this.state.card.returnable &&
