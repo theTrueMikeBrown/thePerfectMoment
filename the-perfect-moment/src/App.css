@@ -39,6 +39,11 @@
   bottom: 0;
 }
 
+.actionButtons.farside {
+  margin-bottom: 9.5em;
+  margin-right: 5.5em;
+}
+
 .actionButtons.displayAlways {
   display: block;
 }
@@ -76,7 +81,10 @@ div.rotate90 + .actionButtons, div.rotate270 + .actionButtons {
   bottom: 2em;
 }
 
-div:hover + .actionButtons, .actionButtons:hover {
+div:hover + .actionButtons,
+ .actionButtons:hover,
+  div:hover + .actionButtons + .actionButtons.farside, 
+  .actionButtons:hover + .actionButtons.farside {
   display: inline-block;
 }
 

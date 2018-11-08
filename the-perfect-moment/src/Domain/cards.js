@@ -7,7 +7,6 @@ function resetAllStatuses(state) {
     state.player.equipment.forEach(card => { card.resetStatus(); });
     state.opponent.equipment.forEach(card => {
         card.resetStatus();
-        card.isOpponents = true;
     });
     state.paradox.forEach(card => { card.resetStatus(); });
 }
@@ -229,7 +228,7 @@ var CardActions = {
         return new Update("", true);
     }),
     armor: new CardAction("Armor", (gameState, card) => { //Your opponent may score their revision for 1 point. Activate one of their items facing them 2x.
-        var cardToActivate = gameState.player.equipment.find(x => x.metadata === "activate this!");
+        var cardToActivate = gameState.opponent.equipment.find(x => x.metadata === "activate this!");
         resetAllStatuses(gameState);
         if (card.activationStep === "0") {
             card.activationStep = "1";
@@ -250,8 +249,11 @@ var CardActions = {
                 });
                 new Update("Error, You didn't pick a card to activate!", true);
             }
-            gameState.activationStack.push(cardToActivate);
-            gameState.activationStack.push(cardToActivate);
+            var cardCopy = {};
+            Object.assign(cardCopy, cardToActivate);
+            cardCopy.action = cardToActivate.action;
+            gameState.activationStack.push({card: cardCopy, option: ["farside", "opponents"]});
+            gameState.activationStack.push({card: cardCopy, option: ["farside", "opponents"]});
             card.activationStep = "99";
         }
         return new Update("", true);
@@ -288,7 +290,7 @@ var CardActions = {
                 debugger;
                 new Update("", true);
             }
-            gameState.activationStack.push(cardToActivate);
+            gameState.activationStack.push({card: cardToActivate, option: []});
             card.activationStep = "99";
         }
         return new Update("", true);
@@ -381,7 +383,7 @@ var Cards = [
     new CardState('1.3', CardActions.armor, CardActions.map),
     new CardState('1.4', CardActions.gun, CardActions.disguise),
     new CardState('1.5', CardActions.armor, CardActions.disguise),
-    new CardState('1.6', CardActions.gun, CardActions.armor),
+    new CardState('1.6', CardActions.armor, CardActions.gun),
     new CardState('2.1', CardActions.keys, CardActions.phone),
     new CardState('2.2', CardActions.keys, CardActions.wallet),
     new CardState('2.3', CardActions.keys, CardActions.tickets),

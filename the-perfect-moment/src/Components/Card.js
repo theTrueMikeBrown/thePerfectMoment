@@ -17,13 +17,27 @@ class Card extends React.Component {
     this.return = this.return.bind(this);
     this.swap = this.swap.bind(this);
     this.activate = this.activate.bind(this);
+    this.farsideActivate = this.farsideActivate.bind(this);
+    this.activateCard = this.activateCard.bind(this);
     this.state.card.resetStatus();
   }
 
-  activateCard(e) {
-    this.props.onActivate({
-      card: this.state.card
-    });
+  activateCard(e, option = null) {
+    var options = [];
+    if (option) { options.push(option); }
+    if (!this.props.rotate || this.props.rotate === "90") {
+      this.props.onActivate({
+        card: this.state.card,
+        option: options
+      });
+    }
+    else if (this.props.rotate === "180") {
+      options.push("opponents");
+      this.props.onActivate({
+        card: this.state.card,
+        option: options
+      });
+    }
   }
 
   move(target) {
@@ -41,6 +55,7 @@ class Card extends React.Component {
   return(e) { e.preventDefault(); this.move("return"); }
   swap(e) { e.preventDefault(); this.move("swap"); }
   flip(e) { e.preventDefault(); this.move("flip"); }
+  farsideActivate(e) { e.preventDefault(); this.state.card.metadata = "activate this!"; this.move("none"); }
   activate(e) { e.preventDefault(); this.activateCard(); }
 
   render() {
@@ -81,6 +96,10 @@ class Card extends React.Component {
           <img className="actionButton" src={formatImage("swap")} onClick={this.swap} alt="swap card" title="swap card" />}
         {this.state.card.activatable &&
           <img className="actionButton" src={formatImage("activate")} onClick={this.activate} alt="activate card" title="activate card" />}
+      </div>
+      <div className="actionButtons farside">
+        {this.state.card.farsideActivatable &&
+          <img className="actionButton" src={formatImage("farsideActivate")} onClick={this.farsideActivate} alt="activate the far side of card" title="activate the far side of card" />}
       </div>
     </div>);
   }
