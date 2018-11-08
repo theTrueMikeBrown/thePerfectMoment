@@ -25,7 +25,7 @@ class CardState {
     this.swapable = false;
     this.scorable = false;
     this.isOpponents = false;
-    this.swapTarget = "";
+    this.metadata = "";
   }
 
   action(gameState, card) {

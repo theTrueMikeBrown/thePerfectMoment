@@ -70,6 +70,10 @@ class Game extends React.Component {
   }
 
   activate(activateData) {
+    if (!activateData.card) {
+      debugger;
+      return;
+    }
     var result = activateData.card.action(this.state, activateData.card)
     var stateCopy = this.state;
     stateCopy.subPhase = "";
@@ -84,7 +88,10 @@ class Game extends React.Component {
       stateCopy.activationStack.push(activateData);
     }
     else {
-      if (this.requiresCleanup(stateCopy)) {
+      if (stateCopy.activationStack.length > 0) {
+        stateCopy = this.activate({ card: stateCopy.activationStack.pop(), });
+      }
+      else if (this.requiresCleanup(stateCopy)) {
         this.cleanup(stateCopy);
         stateCopy.activationStack.push(activateData);
       }
@@ -172,10 +179,9 @@ class Game extends React.Component {
     const target = moveData.target;
 
     this.setState(state => {
-
-      var swapTarget = cardState.swapTarget;
+      var metadata = cardState.metadata;
       cardState.resetStatus();
-      cardState.swapTarget = swapTarget;
+      cardState.metadata = metadata;
 
       if (target === "flip") {
         cardState.flipped = !cardState.flipped;
@@ -240,19 +246,19 @@ class Game extends React.Component {
         }
       }
       else if (target === "swap") {
-        if (cardState.swapTarget === "player.revision") {
+        if (cardState.metadata === "player.revision") {
           var temp = state.player.revision.pop();
           state.player.revision.push(cardState);
           state.player.equipment.push(temp);
         }
       }
       else if (target === "trade") {
-        if (cardState.swapTarget.startsWith("selection")) {
+        if (cardState.metadata.startsWith("selection")) {
           state.selection.push(cardState);
         }
       }
       else if (target === "take") {
-        if (cardState.swapTarget === "selection.player.revision") {
+        if (cardState.metadata === "selection.player.revision") {
           state.player.revision.push(cardState);
         }
       }
