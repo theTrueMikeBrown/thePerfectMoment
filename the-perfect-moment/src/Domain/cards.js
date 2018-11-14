@@ -54,8 +54,9 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.player.revision.push(gameState.deck.pop());
-            gameState.player.revision.push(gameState.deck.pop());
+            gameState.player.revision.push(gameState.draw());
+            gameState.player.revision.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             markReturnable();
             return new Update("Select a card to return.", false, false);
@@ -70,14 +71,15 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    candy: new CardAction("Candy", (gameState, card) => { //Draw 2 cards: equip 1, discard the other. Return an equipped card.
+    candy: new CardAction("Chocolates", (gameState, card) => { //Draw 2 cards: equip 1, discard the other. Return an equipped card.
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.selection.push(gameState.deck.pop());
-            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.draw());
+            gameState.selection.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             gameState.selection.forEach(card => {
                 card.equipable = true;
@@ -179,13 +181,14 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    disguise: new CardAction("Disguise", (gameState, card) => { //Draw a card. Discard a card.
+    disguise: new CardAction("Mask", (gameState, card) => { //Draw a card. Discard a card.
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.player.revision.push(gameState.deck.pop());
+            gameState.player.revision.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.discardable = true;
@@ -206,8 +209,9 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.selection.push(gameState.deck.pop());
-            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.draw());
+            gameState.selection.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             gameState.selection.forEach(card => {
                 card.returnable = true;
@@ -233,8 +237,10 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.opponent.scorePile.push(gameState.opponent.revision.pop());
-            gameState.opponent.revision.push(gameState.deck.pop());
+
+            gameState.opponent.fade(gameState.opponent.revision.pop());
+            gameState.opponent.revision.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             gameState.opponent.equipment.forEach(equipmentCard => {
                 equipmentCard.farsideActivatable = true;
@@ -264,7 +270,8 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.player.revision.push(gameState.deck.pop());
+            gameState.player.revision.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.returnable = true;
@@ -320,8 +327,9 @@ var CardActions = {
         else if (card.activationStep === "2") {
             card.activationStep = "99";
 
-            gameState.player.revision.push(gameState.deck.pop());
-            gameState.player.revision.push(gameState.deck.pop());
+            gameState.player.revision.push(gameState.draw());
+            gameState.player.revision.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
         }
         return new Update("", true);
     }),
@@ -348,10 +356,11 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.selection.push(gameState.deck.pop());
-            gameState.selection.push(gameState.deck.pop());
-            gameState.selection.push(gameState.deck.pop());
-            gameState.selection.push(gameState.deck.pop());
+            gameState.selection.push(gameState.draw());
+            gameState.selection.push(gameState.draw());
+            gameState.selection.push(gameState.draw());
+            gameState.selection.push(gameState.draw());
+            if (gameState.phase === "finished") {return new Update("Game over!", true)}
 
             gameState.selection.forEach(card => {
                 card.returnable = true;

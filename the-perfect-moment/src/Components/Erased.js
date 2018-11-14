@@ -1,7 +1,7 @@
 import React from 'react';
 import Card from './Card';
 
-class ScorePile extends React.Component {
+class Erased extends React.Component {
   constructor(props) {
     super(props);
     this.handleMove = this.handleMove.bind(this);
@@ -21,8 +21,8 @@ class ScorePile extends React.Component {
     }
     var cards = this.props.cards || [];
 
-    return (<fieldset className="scorePile">
-      <legend>Score Pile</legend>
+    return (<fieldset className="erased">
+      <legend>Erased</legend>
       {cards.map(card => {
         var rotate = card.rotate + flipped;
         return (<div key={card.id} className="spacer"><Card rotate={rotate} card={card} onMove={this.handleMove}  /></div>);
@@ -31,4 +31,4 @@ class ScorePile extends React.Component {
   }
 }
 
-export default ScorePile;
+export default Erased;

@@ -9,6 +9,7 @@ class CardState {
     this.activationStep = "0";
     this.id = _currentCardId++;
     this.resetStatus = this.resetStatus.bind(this);
+    this.rotate = 0;
   }
 
   resetStatus() {

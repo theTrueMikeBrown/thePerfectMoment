@@ -17,7 +17,7 @@ class Selection extends React.Component {
 
     return (<fieldset className={"selection" + (visible ? "visible" : "")}>
       <legend>Selection</legend>
-      {cards.map(card => (<Card key={card.id} card={card} onMove={this.handleMove} />))}
+      {cards.filter(x => x).map(card => (<Card key={card.id} card={card} onMove={this.handleMove} />))}
     </fieldset>);
   }
 }

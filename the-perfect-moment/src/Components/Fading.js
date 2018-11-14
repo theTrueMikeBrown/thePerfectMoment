@@ -1,8 +1,7 @@
 import React from 'react';
 import Card from './Card';
-import ensureMinArraySize from '../Domain/ensureMinArraySize';
 
-class Revision extends React.Component {
+class Fading extends React.Component {
   constructor(props) {
     super(props);
     this.handleMove = this.handleMove.bind(this);
@@ -23,10 +22,10 @@ class Revision extends React.Component {
     var cards = this.props.cards || [];
 
     return (<fieldset className="revision">
-      <legend>Revision</legend>
+      <legend>Fading</legend>
       {cards.map(card => (<Card key={card.id} rotate={flipped} card={card} onMove={this.handleMove} />))}
     </fieldset>);
   }
 }
 
-export default Revision;
+export default Fading;
