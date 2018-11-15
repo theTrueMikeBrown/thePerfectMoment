@@ -19,6 +19,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+    <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase-app.js"></script>
     <title>The Perfect Moment</title>
   </head>
   <body>
@@ -37,4 +38,19 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
+
+  <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyDxiVsyu-qGxY6Gm3AAyCNZ521aSoRMtVc",
+      authDomain: "theperfectmomentgame.firebaseapp.com",
+      databaseURL: "https://theperfectmomentgame.firebaseio.com",
+      projectId: "theperfectmomentgame",
+      storageBucket: "theperfectmomentgame.appspot.com",
+      messagingSenderId: "523606423658"
+    };
+    firebase.initializeApp(config);
+  </script>
+
 </html>
