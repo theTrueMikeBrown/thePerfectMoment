@@ -99,6 +99,12 @@ class Game extends React.Component {
 
   handleActivate(activateData) {
     activateData.card.activationStep = "0";
+    
+    var cardCopy = {};
+    Object.assign(cardCopy, activateData.card);
+    cardCopy.action = activateData.card.action;
+    activateData.card = cardCopy;
+
     var stateCopy = this.activate(activateData);
 
     this.setState(stateCopy);
