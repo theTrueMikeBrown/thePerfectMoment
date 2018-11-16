@@ -643,7 +643,13 @@ class Game extends React.Component {
   abort(e) {
     e.preventDefault();
     var stateCopy = this.state;
-    if (this.state.phase.startsWith("action.select")) {
+    if (this.state.subPhase === "activate.card") {
+      var activation = this.state.activationStack.pop();
+      activation.card.activationStep = "99";
+      var stateCopy = this.activate(activation);
+      this.setState(stateCopy);
+    }
+    else if (this.state.phase.startsWith("action.select")) {
       this.endActionPhase(stateCopy);
       this.setState(stateCopy);
     }

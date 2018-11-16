@@ -53,13 +53,13 @@
 .thumb .bigArt { 
 	position:absolute;
   visibility:hidden;
-  height:24.5em;
-  width:17.5em;
+  height:21em;
+  width:15em;
 }
 .thumb:hover .bigArt { 
 	visibility: visible;
-  top:-4.75em;
-  left:-3.75em; 
+  top:-3.5em;
+  left:-2.5em; 
   border: 1px #000 solid;
   border-radius: 1.5em;
 }
