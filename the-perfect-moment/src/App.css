@@ -29,8 +29,42 @@
   width: 10em;
   border: 1px #000 solid;
   border-radius: .75em;
-  overflow: hidden;
+  overflow: visible;
 }
+
+.art {
+  border: 1px #000 solid;
+  border-radius: .75em;
+}
+
+*:hover {
+  z-index: 2;
+}
+.card .thumb:hover {
+  overflow: visible;
+}
+.thumb {
+	float:left; /* must be floated for same cross browser position of larger image */
+	position:relative;
+}
+.thumb:hover {
+	border:0; /* IE6 needs this to show large image */
+}
+.thumb .bigArt { 
+	position:absolute;
+  visibility:hidden;
+  height:24.5em;
+  width:17.5em;
+}
+.thumb:hover .bigArt { 
+	visibility: visible;
+  top:-4.75em;
+  left:-3.75em; 
+  border: 1px #000 solid;
+  border-radius: 1.5em;
+}
+
+
 
 .actionButtons {
   display: none;

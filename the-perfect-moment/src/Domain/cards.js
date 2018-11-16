@@ -310,7 +310,12 @@ var CardActions = {
                 debugger;
                 new Update("", true);
             }
-            gameState.activationStack.push({ card: cardToActivate, option: [], reason: "keys" });
+            
+            var cardCopy = {};
+            Object.assign(cardCopy, cardToActivate);
+            cardCopy.action = cardToActivate.action;
+
+            gameState.activationStack.push({ card: cardCopy, option: [], reason: "keys" });
             ifNoFlip(activateData, () => card.activationStep = "99");
         }
         return new Update("", true);

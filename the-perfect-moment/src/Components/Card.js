@@ -75,7 +75,10 @@ class Card extends React.Component {
     rotate = `rotate${rotate}`;
     return (<div className="inline relative">
       <div className={"card " + rotate}>
-        <img className="art" src={formatImage(getName(this.state.card))} alt={getName(this.state.card)} />
+        <div className="thumb">
+          <img className="art" src={formatImage(getName(this.state.card))} alt={getName(this.state.card)} />
+          <img className="bigArt" src={formatImage(getName(this.state.card))} alt={getName(this.state.card)} />
+        </div>
       </div>
       <div className="actionButtons">
         {this.state.card.flippable &&
