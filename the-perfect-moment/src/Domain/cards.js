@@ -11,26 +11,39 @@ function resetAllStatuses(state) {
     state.paradox.forEach(card => { card.resetStatus(); });
 }
 
+var ifNoFlip = function(activateData, action) {
+    if (activateData.reason === "flipped") {
+        activateData.reason = activateData.oldReason;
+    }
+    else {
+        action();
+    }
+ };
+
 var CardActions = {
-    flowers: new CardAction("Flowers", (gameState, card) => { //up to 2 times: swap an equipped card with your revision.
+    flowers: new CardAction("Flowers", (gameState, activateData) => { //up to 2 times: swap an equipped card with your revision.
+        var card = activateData.card;
+
         resetAllStatuses(gameState);
         gameState.player.equipment.forEach(equipmentCard => {
-            if (card.activationStep === "0" || card.activationStep === "1") {
+            if (card.activationStep === "0" || card.activationStep === "1" || activateData.reason === "flipped") {
                 equipmentCard.swapable = true;
                 equipmentCard.metadata = "player.revision";
             }
         });
         gameState.player.revision.forEach(revisionCard => {
-            if (card.activationStep === "0" || card.activationStep === "1") {
+            if (card.activationStep === "0" || card.activationStep === "1" || activateData.reason === "flipped") {
                 revisionCard.flippable = true;
             }
         });
 
-        if (card.activationStep === "0") {
+        if (card.activationStep === "0" ||
+            (card.activationStep === "1" && activateData.reason === "flipped")) {
             card.activationStep = "1";
             return new Update("Select an equipped card to swap with your revision.", false, true);
         }
-        else if (card.activationStep === "1") {
+        else if (card.activationStep === "1" ||
+             (card.activationStep === "2" && activateData.reason === "flipped")) {
             card.activationStep = "2";
             return new Update("Select another equipped card to swap with your revision.", false, true);
         }
@@ -39,7 +52,8 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    poetry: new CardAction("Poetry", (gameState, card) => { //draw 2 cards. Return 2 cards.
+    poetry: new CardAction("Poetry", (gameState, activateData) => { //draw 2 cards. Return 2 cards.
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         var markReturnable = function () {
@@ -56,7 +70,7 @@ var CardActions = {
 
             gameState.player.revision.push(gameState.draw());
             gameState.player.revision.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             markReturnable();
             return new Update("Select a card to return.", false, false);
@@ -71,15 +85,16 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    candy: new CardAction("Chocolates", (gameState, card) => { //Draw 2 cards: equip 1, discard the other. Return an equipped card.
+    candy: new CardAction("Chocolates", (gameState, activateData) => { //Draw 2 cards: equip 1, discard the other. Return an equipped card.
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
-            card.activationStep = "1";
-
+            ifNoFlip(activateData, () => card.activationStep = "1");
+            
             gameState.selection.push(gameState.draw());
             gameState.selection.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.selection.forEach(card => {
                 card.equipable = true;
@@ -90,7 +105,7 @@ var CardActions = {
         else if (card.activationStep === "1") {
             if (gameState.selection.length === 1) {
                 gameState.deck.unshift(gameState.selection.pop());
-                card.activationStep = "2";
+                ifNoFlip(activateData, () => card.activationStep = "2");
             }
             else {
                 gameState.selection.forEach(card => {
@@ -103,12 +118,13 @@ var CardActions = {
             gameState.player.equipment.forEach(card => {
                 card.returnable = true;
             });
-            card.activationStep = "99";
+            ifNoFlip(activateData, () => card.activationStep = "99");
             return new Update("Return an equipped card.", false, false);
         }
         return new Update("", true);
     }),
-    ring: new CardAction("Ring", (gameState, card) => { //You and your opponent each select and trade a card.
+    ring: new CardAction("Ring", (gameState, activateData) => { //You and your opponent each select and trade a card.
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
@@ -156,11 +172,12 @@ var CardActions = {
                 return new Update("Rotate the cards if necessary, and then return them to their new homes.", false, false);
             }
 
-            card.activationStep = "99";
+            ifNoFlip(activateData, () => card.activationStep = "99");
         }
         return new Update("", true);
     }),
-    map: new CardAction("Map", (gameState, card) => { //Rotate 1 or 2 of your equipment cards
+    map: new CardAction("Map", (gameState, activateData) => { //Rotate 1 or 2 of your equipment cards
+        var card = activateData.card;
         resetAllStatuses(gameState);
         gameState.player.equipment.forEach(equipmentCard => {
             if (card.activationStep === "0" || card.activationStep === "1") {
@@ -181,14 +198,15 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    disguise: new CardAction("Mask", (gameState, card) => { //Draw a card. Discard a card.
+    disguise: new CardAction("Mask", (gameState, activateData) => { //Draw a card. Discard a card.
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
             gameState.player.revision.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.discardable = true;
@@ -203,7 +221,8 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    gun: new CardAction("Gun", (gameState, card) => { //Look at the top two cards of the deck. Return or discard them
+    gun: new CardAction("Gun", (gameState, activateData) => { //Look at the top two cards of the deck. Return or discard them
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
@@ -211,7 +230,7 @@ var CardActions = {
 
             gameState.selection.push(gameState.draw());
             gameState.selection.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.selection.forEach(card => {
                 card.returnable = true;
@@ -231,7 +250,8 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    armor: new CardAction("Armor", (gameState, card) => { //Your opponent may score their revision for 1 point. Activate one of their items facing them 2x.
+    armor: new CardAction("Armor", (gameState, activateData) => { //Your opponent may score their revision for 1 point. Activate one of their items facing them 2x.
+        var card = activateData.card;
         var cardToActivate = gameState.opponent.equipment.find(x => x.metadata === "activate this!");
         resetAllStatuses(gameState);
         if (card.activationStep === "0") {
@@ -240,7 +260,7 @@ var CardActions = {
 
             gameState.opponent.fade(gameState.opponent.revision.pop());
             gameState.opponent.revision.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.opponent.equipment.forEach(equipmentCard => {
                 equipmentCard.farsideActivatable = true;
@@ -258,20 +278,21 @@ var CardActions = {
             var cardCopy = {};
             Object.assign(cardCopy, cardToActivate);
             cardCopy.action = cardToActivate.action;
-            gameState.activationStack.push({card: cardCopy, option: ["farside", "opponents"]});
-            gameState.activationStack.push({card: cardCopy, option: ["farside", "opponents"]});
+            gameState.activationStack.push({ card: cardCopy, option: ["farside", "opponents"], reason: "armor2x.1" });
+            gameState.activationStack.push({ card: cardCopy, option: ["farside", "opponents"], reason: "armor2x.2" });
             card.activationStep = "99";
         }
         return new Update("", true);
     }),
-    keys: new CardAction("Keys", (gameState, card) => { //Draw a card. Return an equipped card. Equip a card and activate it.
+    keys: new CardAction("Keys", (gameState, activateData) => { //Draw a card. Return an equipped card. Equip a card and activate it.
+        var card = activateData.card;
         var cardToActivate = gameState.player.equipment.find(x => x.metadata === "activate this!");
         resetAllStatuses(gameState);
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
             gameState.player.revision.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.returnable = true;
@@ -297,12 +318,13 @@ var CardActions = {
                 debugger;
                 new Update("", true);
             }
-            gameState.activationStack.push({card: cardToActivate, option: []});
-            card.activationStep = "99";
+            gameState.activationStack.push({ card: cardToActivate, option: [], reason: "keys" });
+            ifNoFlip(activateData, () => card.activationStep = "99");
         }
         return new Update("", true);
     }),
-    phone: new CardAction("Phone", (gameState, card) => { //Discard 2 cards. Draw 2 cards.
+    phone: new CardAction("Phone", (gameState, activateData) => { //Discard 2 cards. Draw 2 cards.
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         var markDiscardable = function () {
@@ -329,11 +351,12 @@ var CardActions = {
 
             gameState.player.revision.push(gameState.draw());
             gameState.player.revision.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
         }
         return new Update("", true);
     }),
-    wallet: new CardAction("Wallet", (gameState, card) => {      //Rotate one of your opponent's equipment.   
+    wallet: new CardAction("Wallet", (gameState, activateData) => {      //Rotate one of your opponent's equipment.   
+        var card = activateData.card;
         resetAllStatuses(gameState);
         gameState.opponent.equipment.forEach(equipmentCard => {
             if (card.activationStep === "0" || card.activationStep === "1") {
@@ -350,7 +373,8 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    tickets: new CardAction("Tickets", (gameState, card) => { //Look at the top 4 cards of the deck. Return them in any order.
+    tickets: new CardAction("Tickets", (gameState, activateData) => { //Look at the top 4 cards of the deck. Return them in any order.
+        var card = activateData.card;
         resetAllStatuses(gameState);
 
         if (card.activationStep === "0") {
@@ -360,7 +384,7 @@ var CardActions = {
             gameState.selection.push(gameState.draw());
             gameState.selection.push(gameState.draw());
             gameState.selection.push(gameState.draw());
-            if (gameState.phase === "finished") {return new Update("Game over!", true)}
+            if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.selection.forEach(card => {
                 card.returnable = true;

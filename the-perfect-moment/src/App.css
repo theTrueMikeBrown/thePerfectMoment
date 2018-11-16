@@ -79,7 +79,7 @@
   height: 3px;
 }
 
-.scorePile {
+.scorePile, .fading {
   margin: 0 2em;
 }
 

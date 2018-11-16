@@ -8,6 +8,7 @@ import Erased from './Erased';
 import Revision from './Revision';
 import Selection from './Selection';
 import Cards from '../Domain/cards';
+import resetAllStatuses from '../Domain/resetAllStatuses'
 
 class Game extends React.Component {
   constructor(props) {
@@ -115,7 +116,7 @@ class Game extends React.Component {
     }
 
     var farside = (activateData.option.includes("farside")) !== (activateData.option.includes("opponents"));
-    var result = activateData.card.action(this.state, activateData.card, farside)
+    var result = activateData.card.action(this.state, activateData, farside)
     var stateCopy = this.state;
     stateCopy.subPhase = "";
     if (!result) {
@@ -131,6 +132,7 @@ class Game extends React.Component {
     else {
       if (this.requiresCleanup(stateCopy)) {
         this.cleanup(stateCopy);
+        activateData.reason = "requiresCleanup";
         stateCopy.activationStack.push(activateData);
       }
       else if (stateCopy.activationStack.length > 0) {
@@ -205,7 +207,7 @@ class Game extends React.Component {
   echoMission(state) {
     // EMBARK ON A MISSION - erase a card if possible (leftmost double match)
     var erased = null;
-    state.opponent.revision.forEach(card => {
+    state.opponent.revision.forEach(card => {      
       card.flippable = false;
     });
     state.opponent.equipment.forEach(card => {
@@ -246,9 +248,9 @@ class Game extends React.Component {
       }
     }
 
-    this.refillObjectives(state);
     state.actionAbortable = true;
     state.phase = erased ? "echo.embark.success" : "echo.embark.fail";
+    this.refillObjectives(state);
   }
 
   canErase(card, state) {
@@ -374,9 +376,11 @@ class Game extends React.Component {
 
   doOpponentsTurn(state) {
     if (this.checkGameEnd()) { return; }
+    resetAllStatuses(state);
 
     if (!state.phase.startsWith("echo")) {
       state.turns++;
+
       this.echoReveal(state);
     }
     else if (state.phase === "echo.reveal") {
@@ -508,11 +512,19 @@ class Game extends React.Component {
       cardState.resetStatus();
       cardState.metadata = metadata;
 
+      if (state.activationStack.length !== 0) {
+        var activation = state.activationStack[state.activationStack.length - 1];
+        activation.reason = activation.oldReason || "???";
+      }
+
       if (target === "flip") {
         cardState.flipped = !cardState.flipped;
         if (this.state.phase.startsWith("action.select") &&
           (this.state.subPhase === "activate.card" || this.state.subPhase === "cleanup")) {
-          state = this.activate(state.activationStack.pop());
+          var activation = state.activationStack.pop();
+          activation.oldReason = activation.reason;
+          activation.reason = "flipped";
+          state = this.activate(activation);
         }
         return cardState;
       }
@@ -547,8 +559,8 @@ class Game extends React.Component {
         cleanEmpties(state.player.equipment, 2);
       }
       else if (target === "give") {
-        cardState.flipped = !cardState.flipped;        
-        if (state.opponent.equipment.filter(x=> x.name !== "Empty").length) {
+        cardState.flipped = !cardState.flipped;
+        if (state.opponent.equipment.filter(x => x.name !== "Empty").length) {
           state.opponent.equipment.push(cardState);
           cleanEmpties(state.opponent.equipment, 2);
         }
@@ -641,8 +653,7 @@ class Game extends React.Component {
     var subPhase = this.state.subPhase;
     this.state.opponent.revision.forEach(card => {
       if (card) {
-        if (!(phase.startsWith("action.select") && subPhase === "activate.card"))
-        {
+        if (!(phase.startsWith("action.select") && subPhase === "activate.card")) {
           card.resetStatus();
         }
         card.hidden = phase.startsWith("echo.") ? false : true;
@@ -787,11 +798,14 @@ class Game extends React.Component {
         <Selection cards={this.state.selection} onMove={this.handleMove} />
       </div>
       <div>DebugInfo: {this.state.phase}, {this.state.subPhase}, {this.state.turns}</div>
-      <div>r:
+      <div>revision:
         {this.state.opponent.revision.map(card => (<span key={card.name}>{card.name}, </span>))}
       </div>
-      <div>d:
+      <div>deck:
         {this.state.deck.map(card => (<span key={card.name}>{card.name}, </span>))}
+      </div>
+      <div>activationStack:
+        {this.state.activationStack.map(x => (<span key={x.card.name}>{x.card.name}, </span>))}
       </div>
       <div className={popup ? "modal target" : "modal"} id="modal-one" aria-hidden="true">
         <div className="modal-dialog">

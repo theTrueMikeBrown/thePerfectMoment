@@ -14,14 +14,14 @@ class Fading extends React.Component {
   render() {
     var flipped = this.props.flipped;
     if (flipped) {
-      flipped = '180';
+      flipped = '270';
     }
     else {
-      flipped = '';
+      flipped = '90';
     }
     var cards = this.props.cards || [];
 
-    return (<fieldset className="revision">
+    return (<fieldset className="fading">
       <legend>Fading</legend>
       {cards.map(card => (<Card key={card.id} rotate={flipped} card={card} onMove={this.handleMove} />))}
     </fieldset>);

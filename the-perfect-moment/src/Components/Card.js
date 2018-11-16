@@ -28,14 +28,16 @@ class Card extends React.Component {
     if (!this.props.rotate || this.props.rotate === "90") {
       this.props.onActivate({
         card: this.state.card,
-        option: options
+        option: options,
+        reason: "userAction"
       });
     }
     else if (this.props.rotate === "180") {
       options.push("opponents");
       this.props.onActivate({
         card: this.state.card,
-        option: options
+        option: options,
+        reason: "userAction"
       });
     }
   }
