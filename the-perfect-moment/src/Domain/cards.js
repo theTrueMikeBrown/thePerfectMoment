@@ -1,15 +1,7 @@
 import CardState from './cardState';
 import CardAction from './cardAction';
 import Update from './update';
-
-function resetAllStatuses(state) {
-    state.player.revision.forEach(card => { card.resetStatus(); });
-    state.player.equipment.forEach(card => { card.resetStatus(); });
-    state.opponent.equipment.forEach(card => {
-        card.resetStatus();
-    });
-    state.paradox.forEach(card => { card.resetStatus(); });
-}
+import resetAllStatuses from './resetAllStatuses'
 
 var ifNoFlip = function(activateData, action) {
     if (activateData.reason === "flipped") {
@@ -130,19 +122,6 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.opponent.equipment.forEach(equipmentCard => {
-                equipmentCard.tradeable = true;
-                equipmentCard.metadata = "selection.player.revision";
-            });
-            gameState.opponent.revision.forEach(revisionCard => {
-                revisionCard.tradeable = true;
-                revisionCard.metadata = "selection.player.revision";
-            });
-            return new Update("Select a card for your opponent to trade with you.", false, false);
-        }
-        else if (card.activationStep === "1") {
-            card.activationStep = "2";
-
             var target = (gameState.opponent.equipment.length < 2) ?
                 "selection.opponent.equipment" :
                 "selection.opponent.revision";
@@ -156,6 +135,19 @@ var CardActions = {
                 revisionCard.metadata = target;
             });
             return new Update("Select a card to trade with your opponent.", false, false);
+        }
+        else if (card.activationStep === "1") {
+            card.activationStep = "2";
+
+            gameState.opponent.equipment.forEach(equipmentCard => {
+                equipmentCard.tradeable = true;
+                equipmentCard.metadata = "selection.player.revision";
+            });
+            gameState.opponent.revision.forEach(revisionCard => {
+                revisionCard.tradeable = true;
+                revisionCard.metadata = "selection.player.revision";
+            });
+            return new Update("Select a card for your opponent to trade with you.", false, false);
         }
         else if (card.activationStep === "2") {
             gameState.selection.forEach(equipmentCard => {

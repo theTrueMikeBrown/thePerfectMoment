@@ -560,7 +560,7 @@ class Game extends React.Component {
       }
       else if (target === "give") {
         cardState.flipped = !cardState.flipped;
-        if (state.opponent.equipment.filter(x => x.name !== "Empty").length) {
+        if (state.opponent.equipment.filter(x => x.name !== "empty").length < 2) {
           state.opponent.equipment.push(cardState);
           cleanEmpties(state.opponent.equipment, 2);
         }
