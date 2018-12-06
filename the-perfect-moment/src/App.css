@@ -35,6 +35,7 @@
 .art {
   border: 1px #000 solid;
   border-radius: .75em;
+  margin: -0.25px;
 }
 
 *:hover {
@@ -110,7 +111,7 @@
 }
 
 .erased .spacer {
-  height: 3px;
+  height: 5px;
 }
 
 .scorePile, .fading {

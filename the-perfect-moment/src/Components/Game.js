@@ -19,6 +19,7 @@ class Game extends React.Component {
     this.abort = this.abort.bind(this);
     this.isCardScorable = this.isCardScorable.bind(this);
     this.isAnyCardScorable = this.isAnyCardScorable.bind(this);
+    this.isCardStealable = this.isCardStealable.bind(this);
     this.endActionPhase = this.endActionPhase.bind(this);
     this.doOpponentsTurn = this.doOpponentsTurn.bind(this);
     this.requiresCleanup = this.requiresCleanup.bind(this);
@@ -99,7 +100,7 @@ class Game extends React.Component {
 
   handleActivate(activateData) {
     activateData.card.activationStep = "0";
-    
+
     var cardCopy = {};
     Object.assign(cardCopy, activateData.card);
     cardCopy.action = activateData.card.action;
@@ -213,7 +214,7 @@ class Game extends React.Component {
   echoMission(state) {
     // EMBARK ON A MISSION - erase a card if possible (leftmost double match)
     var erased = null;
-    state.opponent.revision.forEach(card => {      
+    state.opponent.revision.forEach(card => {
       card.flippable = false;
     });
     state.opponent.equipment.forEach(card => {
@@ -411,8 +412,6 @@ class Game extends React.Component {
     while (state.opponent.revision.length < 1) { state.opponent.revision.push(this.state.draw()); }
     while (state.opponent.equipment.length < 2) { state.opponent.equipment.push(this.state.draw()); }
     while (state.paradox.length < 1) { state.paradox.push(this.state.draw()); }
-
-    //TODO: IT IS POSSIBLE TO SCORE THE FADING CARD
   }
 
   isAnyCardScorable() {
@@ -421,16 +420,30 @@ class Game extends React.Component {
         return true;
       }
     }
-    for (var j = 0; j < this.state.player.revision.length; j++) {
-      if (this.isCardScorable(this.state.player.revision[j])) {
+    for (i = 0; i < this.state.player.revision.length; i++) {
+      if (this.isCardScorable(this.state.player.revision[i])) {
+        return true;
+      }
+    }
+    for (i = 0; i < this.state.player.scorePile.length; i++) {
+      if (this.isCardStealable(this.state.player.scorePile[i])) {
+        return true;
+      }
+    }
+    for (i = 0; i < this.state.opponent.fading.length; i++) {
+      if (this.isCardStealable(this.state.opponent.fading[i])) {
         return true;
       }
     }
     return false;
   }
 
+  isCardStealable(card) {
+    return !card.hidden && this.determinePoints(card) > 1;
+  }
+  
   isCardScorable(card) {
-    return this.state.player.equipment.some(equipmentCard =>
+    return !card.hidden && this.state.player.equipment.some(equipmentCard =>
       equipmentCard.action1 === card.action1 ||
       equipmentCard.action1 === card.action2 ||
       equipmentCard.action2 === card.action1 ||
@@ -498,7 +511,6 @@ class Game extends React.Component {
     }
 
     this.refillObjectives(this.state);
-    if (this.checkGameEnd()) { return this.state; }
   }
 
   refillObjectives(state) {
@@ -582,6 +594,9 @@ class Game extends React.Component {
       }
       else if (target === "score") {
         this.scoreCard(cardState);
+        if(this.checkGameEnd()) {
+          return state;
+        }
       }
       else if (target === "swap") {
         if (cardState.metadata === "player.revision") {
@@ -672,6 +687,12 @@ class Game extends React.Component {
       }
     });
 
+    this.state.player.scorePile.forEach(card => {
+      if (card) {
+        card.scorable = false;
+      }
+    });
+
     if (this.state.phase === "setup.equip") {
       this.state.player.revision.forEach(card => {
         if (card) {
@@ -758,6 +779,17 @@ class Game extends React.Component {
         if (card) {
           card.resetStatus();
           if (this.isCardScorable(card, this.state)) { card.scorable = true; }
+        }
+      });
+      this.state.opponent.fading.forEach(card => {
+        if (card) {
+          card.resetStatus();
+          if (this.isCardStealable(card, this.state)) { card.scorable = true; }
+        }
+      });
+      this.state.player.scorePile.forEach(card => {
+        if (card) {
+          if (this.isCardStealable(card, this.state)) { card.scorable = true; }
         }
       });
       this.state.player.equipment.forEach(card => {

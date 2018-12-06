@@ -21,6 +21,7 @@ class Revision extends React.Component {
       flipped = '';
     }
     var cards = this.props.cards || [];
+    cards = cards.filter(x => x);
 
     return (<fieldset className="revision">
       <legend>Revision</legend>

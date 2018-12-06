@@ -405,7 +405,7 @@ var Cards = [
     new CardState('0.1', CardActions.poetry, CardActions.flowers),
     new CardState('0.2', CardActions.candy, CardActions.flowers),
     new CardState('0.3', CardActions.ring, CardActions.flowers),
-    new CardState('0.4', CardActions.candy, CardActions.poetry),
+    new CardState('0.4', CardActions.poetry, CardActions.candy),
     new CardState('0.5', CardActions.poetry, CardActions.ring),
     new CardState('0.6', CardActions.candy, CardActions.ring),
     new CardState('1.1', CardActions.disguise, CardActions.map),
