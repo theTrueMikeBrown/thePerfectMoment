@@ -24,7 +24,7 @@ class Revision extends React.Component {
     cards = cards.filter(x => x);
 
     return (<fieldset className="revision">
-      <legend>Revision</legend>
+      <legend>Plan</legend>
       {cards.map(card => (<Card key={card.id} rotate={flipped} card={card} onMove={this.handleMove} />))}
     </fieldset>);
   }

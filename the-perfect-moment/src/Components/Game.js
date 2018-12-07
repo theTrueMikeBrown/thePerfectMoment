@@ -49,12 +49,15 @@ class Game extends React.Component {
         erased: []
       },
       activationStack: [],
-      selection: []
+      selection: [],
+      record: [`started at ${new Date().getTime()}`]
     };
 
     this.state.draw = function () {
       if (this.state.deck.length > 0) {
-        return this.state.deck.pop();
+        var card = this.state.deck.pop();
+        card.resetStatus();
+        return card;
       }
       this.state.phase = "finished";
     }
@@ -256,7 +259,10 @@ class Game extends React.Component {
     }
 
     state.actionAbortable = true;
-    state.phase = erased ? "echo.embark.success" : "echo.embark.fail";
+
+    if (!this.checkGameEnd()) {
+      state.phase = erased ? "echo.embark.success" : "echo.embark.fail";
+    }
     this.refillObjectives(state);
   }
 
@@ -351,18 +357,29 @@ class Game extends React.Component {
       }
       var card = state.draw()
       state.opponent.revision.push(card);
-      state.message = `Your Echo discards ${planBCard.action1.name}/${planBCard.action2.name}, moves ${newCard.action1.name}/${newCard.action2.name} to its hand, and draws ${card.action1.name}/${card.action2.name}`;
+
+      if (newCard) {
+        state.message = `Your Echo discards ${planBCard.action1.name}/${planBCard.action2.name}, moves ${newCard.action1.name}/${newCard.action2.name} to its hand, and draws ${card.action1.name}/${card.action2.name}`;
+      }
+      else {
+        state.message = `Your Echo discards ${planBCard.action1.name}/${planBCard.action2.name}, and draws ${card.action1.name}/${card.action2.name}`;
+      }
     }
     else {
       state.message = `Your Echo cannot determine which card to discard.`;
     }
-    state.phase = "echo.plan.b.setup";
+
+    if (!this.checkGameEnd()) {
+      state.phase = "echo.plan.b.setup";
+    }
   }
 
   planB(state) {
     //          erase a card if possible (leftmost double match)
     this.echoMission(state);
-    state.phase = state.phase === "echo.embark.success" ? "echo.plan.b.success" : "echo.plan.b.fail"
+    if (!this.checkGameEnd()) {
+      state.phase = state.phase === "echo.embark.success" ? "echo.plan.b.success" : "echo.plan.b.fail"
+    }
 
     state.message = "Your Echo switches to Plan B, " + state.message;
   }
@@ -373,10 +390,16 @@ class Game extends React.Component {
     if (fadeCard) {
       state.opponent.fade(fadeCard);
       state.message = `Your Echo fades ${fadeCard.action1.name}/${fadeCard.action2.name}!`;
-      state.phase = "echo.plan.b.fade.success";
+
+      if (!this.checkGameEnd()) {
+        state.phase = "echo.plan.b.fade.success";
+      }
     }
     else {
-      state.phase = "echo.plan.b.fade.fail";
+
+      if (!this.checkGameEnd()) {
+        state.phase = "echo.plan.b.fade.fail";
+      }
       state.message = `Your Echo doesn't even fade anything... How ineffectual!`;
     }
   }
@@ -385,7 +408,11 @@ class Game extends React.Component {
     if (this.checkGameEnd()) { return; }
     resetAllStatuses(state);
 
-    if (!state.phase.startsWith("echo")) {
+    if (state.deck.length === 0) {
+      this.state.phase = "finished";
+      state.message = "The deck is empty. Game over.";
+    }
+    else if (!state.phase.startsWith("echo")) {
       state.turns++;
 
       this.echoReveal(state);
@@ -441,7 +468,7 @@ class Game extends React.Component {
   isCardStealable(card) {
     return !card.hidden && this.determinePoints(card) > 1;
   }
-  
+
   isCardScorable(card) {
     return !card.hidden && this.state.player.equipment.some(equipmentCard =>
       equipmentCard.action1 === card.action1 ||
@@ -594,7 +621,8 @@ class Game extends React.Component {
       }
       else if (target === "score") {
         this.scoreCard(cardState);
-        if(this.checkGameEnd()) {
+        if (this.checkGameEnd()) {
+          debugger;
           return state;
         }
       }
