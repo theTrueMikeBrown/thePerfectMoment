@@ -126,6 +126,10 @@
   margin-top: -2em;
 }
 
+.right {
+  float: right;
+}
+
 div.rotate90 + .actionButtons, div.rotate270 + .actionButtons {
   right: -2em;
   bottom: 2em;
