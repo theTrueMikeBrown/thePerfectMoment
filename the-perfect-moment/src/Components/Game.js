@@ -844,9 +844,33 @@ class Game extends React.Component {
     }
 
     var popup = null;
+    var message = "What???";
     if (this.checkGameEnd()) {
       this.state.message = "Game Over!";
       var points = this.state.player.scorePile.reduce((ac, x) => ac + x.scoredFor, 0);
+
+      if (points <= 0) {
+        message = "You wake up in your bed. It was only a dream. You lose.";
+      }
+      else if (points <= 14) {
+        message = "Existence was unmade. You lose.";
+      }
+      else if (points <= 17) {
+        message = "You saved reality by sacrificing yourself. You lose, but not so badly.";
+      }
+      else if (points <= 20) {
+        message = "It worked! Everything is as it should be. You win.";
+      }
+      else if (points <= 32) {
+        message = "You are a master of space and time. You win hardcore.";
+      }
+      else if (points === 33) {
+        message = "You played a perfect game of the Perfect Moment.";
+      }
+      else {
+        message = "You cheated.";
+      }
+
       popup = "Score: " + points;
     }
 
@@ -885,7 +909,8 @@ class Game extends React.Component {
             <h2>{this.state.message}</h2>
           </div>
           <div className="modal-body">
-            <p>{popup}</p>
+            <h3>{popup}</h3>
+            <p>{message}</p>
           </div>
         </div>
       </div>
