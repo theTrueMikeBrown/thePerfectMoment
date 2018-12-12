@@ -72,9 +72,14 @@ class Card extends React.Component {
     if (this.state.card.flipped) {
       rotate = (rotate + 180) % 360;
     }
-    rotate = `rotate${rotate}`;
+    rotate = `rotate${rotate} `;
+    var action = this.state.card.flippable || this.state.card.equipable || this.state.card.scorable ||
+      this.state.card.giveable || this.state.card.takeable || this.state.card.tradeable ||
+      this.state.card.discardable || this.state.card.returnable || this.state.card.swapable ||      
+      this.state.card.activatable || this.state.card.farsideActivatable ? `highlighted` : "";
+
     return (<div className="inline relative">
-      <div className={"card " + rotate}>
+      <div className={"card " + rotate + action}>
         <div className="thumb">
           <img className="art" src={formatImage(getName(this.state.card))} alt={getName(this.state.card)} />
           <img className="bigArt" src={formatImage(getName(this.state.card))} alt={getName(this.state.card)} />

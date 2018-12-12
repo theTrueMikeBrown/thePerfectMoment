@@ -62,6 +62,7 @@
   height:21em;
   width:15em;
 }
+
 .thumb:hover .bigArt { 
 	visibility: visible;
   top:-3.5em;
@@ -69,8 +70,6 @@
   border: 1px #000 solid;
   border-radius: 1.5em;
 }
-
-
 
 .actionButtons {
   display: none;
@@ -150,6 +149,10 @@ div:hover + .actionButtons,
   .actionButtons:hover + .actionButtons.farside {
   display: inline-block;
 }
+
+div.highlighted {
+    box-shadow: 0px 0px 20px magenta;
+  }
 
 .deck img.art {
   border: 2.5px #000 solid;
