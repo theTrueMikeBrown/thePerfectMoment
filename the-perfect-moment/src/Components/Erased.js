@@ -1,5 +1,5 @@
 import React from 'react';
-import Card from './Card';
+import formatImage from "../Domain/formatImage";
 
 class Erased extends React.Component {
   constructor(props) {
@@ -12,20 +12,13 @@ class Erased extends React.Component {
   }
 
   render() {
-    var flipped = this.props.flipped;
-    if (flipped) {
-      flipped = 180;
-    }
-    else {
-      flipped = 0;
-    }
+    var image = this.props.img || formatImage('BackPM');
     var cards = this.props.cards || [];
 
     return (<fieldset className="erased">
       <legend>Erased</legend>
       {cards.map(card => {
-        var rotate = card.rotate + flipped;
-        return (<div key={card.id} className="spacer"><Card rotate={rotate} card={card} onMove={this.handleMove}  /></div>);
+        return (<div key={card.id} className="spacer"><img className="card" src={image} alt="erased" title="erased" /></div>);
       })}
     </fieldset>);
   }

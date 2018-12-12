@@ -41,6 +41,11 @@
 *:hover {
   z-index: 2;
 }
+
+.deck * {
+  z-index: 1;
+}
+
 .card .thumb:hover {
   overflow: visible;
 }
@@ -112,6 +117,10 @@
 
 .erased .spacer {
   height: 5px;
+}
+
+.deck .spacer {
+  height: 1px;
 }
 
 .scorePile, .fading {

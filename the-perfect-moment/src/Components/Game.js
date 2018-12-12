@@ -884,7 +884,7 @@ class Game extends React.Component {
         <Revision flipped cards={this.state.opponent.revision} onMove={this.handleMove} />
       </div>
       <div>
-        <Deck />
+        <Deck cards={this.state.deck} />
         <Paradox cards={this.state.paradox} onActivate={this.handleActivate} onMove={this.handleMove} />
       </div>
       <div>
