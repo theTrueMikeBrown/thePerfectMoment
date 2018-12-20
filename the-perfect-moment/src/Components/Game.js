@@ -876,7 +876,7 @@ class Game extends React.Component {
 
     //TODO: change setup to use Selection instead of revision
     return (<div className="game">
-      <h2>{this.state.message}&nbsp;&nbsp;{abortArea}</h2>
+      <h2 onClick={this.abort}>{this.state.message}&nbsp;&nbsp;{abortArea}</h2>
       <div>
         <Erased flipped cards={this.state.opponent.erased} onMove={this.handleMove} />
         <Fading flipped cards={this.state.opponent.fading} onMove={this.handleMove} />
