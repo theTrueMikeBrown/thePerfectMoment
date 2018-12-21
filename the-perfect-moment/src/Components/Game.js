@@ -411,6 +411,7 @@ class Game extends React.Component {
     if (state.deck.length === 0) {
       this.state.phase = "finished";
       state.message = "The deck is empty. Game over.";
+      return;
     }
     else if (!state.phase.startsWith("echo")) {
       state.turns++;
@@ -431,7 +432,9 @@ class Game extends React.Component {
       this.planBFade(state);
     }
     else {
-      state.message = "Select an equipment card to activate.";
+      var plan = state.opponent.revision.pop();
+      state.discard(plan);
+      state.message = "Your echo discards its plan. It is your turn. Select an equipment card to activate.";
       state.actionAbortable = true;
       state.phase = "action.select.1";
     }
@@ -840,7 +843,7 @@ class Game extends React.Component {
 
     var abortArea = <div />;
     if (this.state.actionAbortable) {
-      abortArea = <img className="bigAbort actionButton" src="/img/abort.png" onClick={this.abort} alt="done" title="Done" />;
+      abortArea = <img className="bigAbort actionButton" src="/img/abort.png" alt="done" title="Done" />;
     }
 
     var popup = null;
