@@ -12,6 +12,10 @@ class CardState {
     this.rotate = 0;
   }
 
+  getName() {
+    return `${this.action1.name}/${this.action2.name}`;
+  }
+
   resetStatus() {
     this.hidden = false;
     this.flippable = false;

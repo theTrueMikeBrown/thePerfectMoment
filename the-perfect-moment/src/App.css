@@ -315,3 +315,7 @@ p {
   border-top: #eeeeee solid 1px;
   text-align: right;
 }
+
+.debuginfo {
+  text-align: left;
+}

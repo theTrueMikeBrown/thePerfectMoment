@@ -9,10 +9,14 @@ import Revision from './Revision';
 import Selection from './Selection';
 import Cards from '../Domain/cards';
 import resetAllStatuses from '../Domain/resetAllStatuses'
+import seedrandom from 'seedrandom';
 
 class Game extends React.Component {
-  constructor(props) {
+  constructor(props) {    
     super(props);
+
+    seedrandom('test', { global: true });
+
     this.handleMove = this.handleMove.bind(this);
     this.handleActivate = this.handleActivate.bind(this);
     this.activate = this.activate.bind(this);
@@ -57,6 +61,7 @@ class Game extends React.Component {
       if (this.state.deck.length > 0) {
         var card = this.state.deck.pop();
         card.resetStatus();
+        this.state.record.push(`drew ${card.getName()}`);
         return card;
       }
       this.state.phase = "finished";
@@ -92,9 +97,14 @@ class Game extends React.Component {
 
     this.shuffle(this.state.deck);
 
+    this.state.record.push(`Setting up game...`);
+    this.state.record.push(`Drawing opponent's plan...`);
     this.state.opponent.revision.push(this.state.draw());
+    this.state.record.push(`Drawing opponent's starting equipment...`);
     this.state.opponent.equipment.push(this.state.draw());
+    this.state.record.push(`Drawing paradox...`);
     this.state.paradox.push(this.state.draw());
+    this.state.record.push(`Drawing player's start cards...`);
     this.state.player.revision.push(this.state.draw());
     this.state.player.revision.push(this.state.draw());
     this.state.player.revision.push(this.state.draw());
@@ -208,7 +218,7 @@ class Game extends React.Component {
       card.flippable = true;
       this.messWith(card.action1.name, state);
       this.messWith(card.action2.name, state);
-      state.message = `Your Echo reveals its plans: ${card.action1.name}/${card.action2.name}`;
+      state.message = `Your Echo reveals its plans: ${card.getName()}`;
     });
     state.actionAbortable = true;
     state.phase = "echo.reveal";
@@ -228,7 +238,7 @@ class Game extends React.Component {
     });
     if (erased) {
       state.opponent.equipment = state.opponent.equipment.filter(card => card.id !== erased.id);
-      state.message = `erasing ${erased.action1.name}/${erased.action2.name}!`;
+      state.message = `erasing ${erased.getName()}!`;
     }
     else {
       state.opponent.revision.forEach(card => {
@@ -239,7 +249,7 @@ class Game extends React.Component {
       });
       if (erased) {
         state.opponent.revision = state.opponent.revision.filter(card => card.id !== erased.id);
-        state.message = `erasing ${erased.action1.name}/${erased.action2.name}!`;
+        state.message = `erasing ${erased.getName()}!`;
       }
       else {
         state.paradox.forEach(card => {
@@ -250,7 +260,7 @@ class Game extends React.Component {
         });
         if (erased) {
           state.paradox = state.paradox.filter(card => card.id !== erased.id);
-          state.message = `erasing ${erased.action1.name}/${erased.action2.name}!`;
+          state.message = `erasing ${erased.getName()}!`;
         }
         else {
           state.message = `but fails to erase anything...`;
@@ -359,10 +369,10 @@ class Game extends React.Component {
       state.opponent.revision.push(card);
 
       if (newCard) {
-        state.message = `Your Echo discards ${planBCard.action1.name}/${planBCard.action2.name}, moves ${newCard.action1.name}/${newCard.action2.name} to its hand, and draws ${card.action1.name}/${card.action2.name}`;
+        state.message = `Your Echo discards ${planBCard.getName()}, moves ${newCard.getName()} to its hand, and draws ${card.getName()}`;
       }
       else {
-        state.message = `Your Echo discards ${planBCard.action1.name}/${planBCard.action2.name}, and draws ${card.action1.name}/${card.action2.name}`;
+        state.message = `Your Echo discards ${planBCard.getName()}, and draws ${card.getName()}`;
       }
     }
     else {
@@ -389,7 +399,7 @@ class Game extends React.Component {
     var fadeCard = this.grabSingleMatcher(state);
     if (fadeCard) {
       state.opponent.fade(fadeCard);
-      state.message = `Your Echo fades ${fadeCard.action1.name}/${fadeCard.action2.name}!`;
+      state.message = `Your Echo fades ${fadeCard.getName()}!`;
 
       if (!this.checkGameEnd()) {
         state.phase = "echo.plan.b.fade.success";
@@ -572,7 +582,8 @@ class Game extends React.Component {
           var activation = state.activationStack.pop();
           activation.oldReason = activation.reason;
           activation.reason = "flipped";
-          state = this.activate(activation);
+          state = this.activate(activation);          
+          this.state.record.push(`${cardState.getName()} rotates`);
         }
         return cardState;
       }
@@ -604,6 +615,7 @@ class Game extends React.Component {
 
       if (target === "equip") {
         state.player.equipment.push(cardState);
+        this.state.record.push(`Player equips ${cardState.getName()}`);
         cleanEmpties(state.player.equipment, 2);
       }
       else if (target === "give") {
@@ -611,6 +623,7 @@ class Game extends React.Component {
         if (state.opponent.equipment.filter(x => x.name !== "empty").length < 2) {
           state.opponent.equipment.push(cardState);
           cleanEmpties(state.opponent.equipment, 2);
+          this.state.record.push(`${cardState.getName()} is given to echo`);
         }
         else {
           state.opponent.revision.push(cardState);
@@ -618,11 +631,14 @@ class Game extends React.Component {
       }
       else if (target === "discard") {
         state.discard(cardState);
+        this.state.record.push(`${cardState.getName()} is discarded`);
       }
       else if (target === "return") {
         state.return(cardState);
+        this.state.record.push(`${cardState.getName()} is returned`);
       }
       else if (target === "score") {
+        this.state.record.push(`${cardState.getName()} is about to be scored`);
         this.scoreCard(cardState);
         if (this.checkGameEnd()) {
           debugger;
@@ -631,6 +647,7 @@ class Game extends React.Component {
       }
       else if (target === "swap") {
         if (cardState.metadata === "player.revision") {
+          this.state.record.push(`${cardState.getName()} is about to be swapped with the player's plan`);
           var temp = state.player.revision.pop();
           state.player.revision.push(cardState);
           state.player.equipment.push(temp);
@@ -654,10 +671,10 @@ class Game extends React.Component {
       else if (this.state.phase === "setup.give") {
         state.player.equipment.push(this.state.draw());
         cleanEmpties(state.player.equipment, 2);
-        state.phase = "setup.discardOrReturn";
+        state.phase = "setup.discard";
         state.message = "Select a card to return to the top of the deck or discard.";
       }
-      else if (this.state.phase === "setup.discardOrReturn") {
+      else if (this.state.phase === "setup.discard") {
         state.phase = "action.select.1";
         state.message = "Select an equipment card to activate.";
         state.actionAbortable = true;
@@ -725,6 +742,7 @@ class Game extends React.Component {
     });
 
     if (this.state.phase === "setup.equip") {
+      this.state.record.push(`Player is selecting a card to equip...`);
       this.state.player.revision.forEach(card => {
         if (card) {
           card.resetStatus();
@@ -734,6 +752,7 @@ class Game extends React.Component {
       });
     }
     else if (this.state.phase === "setup.give") {
+      this.state.record.push(`Player is selecting a card to give to echo...`);
       this.state.player.revision.forEach(card => {
         if (card) {
           card.resetStatus();
@@ -742,12 +761,12 @@ class Game extends React.Component {
         }
       });
     }
-    else if (this.state.phase === "setup.discardOrReturn") {
+    else if (this.state.phase === "setup.discard") {
+      this.state.record.push(`Player is selecting a card to discard...`);
       this.state.player.revision.forEach(card => {
         if (card) {
           card.resetStatus();
           card.discardable = true;
-          card.returnable = true;
         }
       });
     }
@@ -896,15 +915,23 @@ class Game extends React.Component {
         <Equipment cards={this.state.player.equipment} onActivate={this.handleActivate} onMove={this.handleMove} />
         <Selection cards={this.state.selection} onMove={this.handleMove} />
       </div>
-      <div>DebugInfo: {this.state.phase}, {this.state.subPhase}, {this.state.turns}</div>
-      <div>revision:
-        {this.state.opponent.revision.map(card => (<span key={card.name}>{card.name}, </span>))}
-      </div>
-      <div>deck:
-        {this.state.deck.map(card => (<span key={card.name}>{card.name}, </span>))}
-      </div>
-      <div>activationStack:
-        {this.state.activationStack.map(x => (<span key={x.card.name}>{x.card.name}, </span>))}
+      <div class="debuginfo">
+        <h3>DebugInfo:</h3>
+        <div>Phase: {this.state.phase}, Subphase: {this.state.subPhase}, Turns: {this.state.turns}</div>
+        <div>Opponents plan:
+          {this.state.opponent.revision.map(card => (<span key={card.name}>{card.getName()}, </span>))}
+        </div>
+        <div>Deck:
+          {this.state.deck.map(card => (<span key={card.name}>{card.getName()}, </span>))}
+        </div>
+        <div>Activation Stack:
+          {this.state.activationStack.map(x => (<span key={x.card.name}>{x.card && x.card.getName ? x.card.getName() : "-"}, </span>))}
+        </div>
+        <div>Record
+          <ul>
+          {this.state.record.slice(-50).map((x, index) => (<li key={index}>{x}, </li>))}
+          </ul>
+        </div>
       </div>
       <div className={popup ? "modal target" : "modal"} id="modal-one" aria-hidden="true">
         <div className="modal-dialog">
