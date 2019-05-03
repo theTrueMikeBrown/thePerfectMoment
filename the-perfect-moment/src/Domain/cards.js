@@ -13,31 +13,31 @@ var ifNoFlip = function(activateData, action) {
  };
 
 var CardActions = {
-    flowers: new CardAction("Flowers", (gameState, activateData) => { //up to 2 times: swap an equipped card with your revision.
+    flowers: new CardAction("Flowers", (gameState, activateData) => { //up to 2 times: swap an equipped card with your plan.
         var card = activateData.card;
 
         resetAllStatuses(gameState);
         gameState.player.equipment.forEach(equipmentCard => {
             if (card.activationStep === "0" || card.activationStep === "1" || activateData.reason === "flipped") {
                 equipmentCard.swapable = true;
-                equipmentCard.metadata = "player.revision";
+                equipmentCard.metadata = "player.plan";
             }
         });
-        gameState.player.revision.forEach(revisionCard => {
+        gameState.player.plan.forEach(planCard => {
             if (card.activationStep === "0" || card.activationStep === "1" || activateData.reason === "flipped") {
-                revisionCard.flippable = true;
+                planCard.flippable = true;
             }
         });
 
         if (card.activationStep === "0" ||
             (card.activationStep === "1" && activateData.reason === "flipped")) {
             card.activationStep = "1";
-            return new Update("Select an equipped card to swap with your revision.", false, true);
+            return new Update("Select an equipped card to swap with your plan.", false, true);
         }
         else if (card.activationStep === "1" ||
              (card.activationStep === "2" && activateData.reason === "flipped")) {
             card.activationStep = "2";
-            return new Update("Select another equipped card to swap with your revision.", false, true);
+            return new Update("Select another equipped card to swap with your plan.", false, true);
         }
         else if (card.activationStep === "2") {
             card.activationStep = "99";
@@ -52,16 +52,16 @@ var CardActions = {
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.returnable = true;
             });
-            gameState.player.revision.forEach(revisionCard => {
-                revisionCard.returnable = true;
+            gameState.player.plan.forEach(planCard => {
+                planCard.returnable = true;
             });
         };
 
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.player.revision.push(gameState.draw());
-            gameState.player.revision.push(gameState.draw());
+            gameState.player.plan.push(gameState.draw());
+            gameState.player.plan.push(gameState.draw());
             if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             markReturnable();
@@ -124,15 +124,15 @@ var CardActions = {
 
             var target = (gameState.opponent.equipment.length < 2) ?
                 "selection.opponent.equipment" :
-                "selection.opponent.revision";
+                "selection.opponent.plan";
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.tradeable = true;
                 equipmentCard.metadata = target;
             });
-            gameState.player.revision.forEach(revisionCard => {
-                revisionCard.tradeable = true;
-                revisionCard.metadata = target;
+            gameState.player.plan.forEach(planCard => {
+                planCard.tradeable = true;
+                planCard.metadata = target;
             });
             return new Update("Select a card to trade with your opponent.", false, false);
         }
@@ -141,11 +141,11 @@ var CardActions = {
 
             gameState.opponent.equipment.forEach(equipmentCard => {
                 equipmentCard.tradeable = true;
-                equipmentCard.metadata = "selection.player.revision";
+                equipmentCard.metadata = "selection.player.plan";
             });
-            gameState.opponent.revision.forEach(revisionCard => {
-                revisionCard.tradeable = true;
-                revisionCard.metadata = "selection.player.revision";
+            gameState.opponent.plan.forEach(planCard => {
+                planCard.tradeable = true;
+                planCard.metadata = "selection.player.plan";
             });
             return new Update("Select a card for your opponent to trade with you.", false, false);
         }
@@ -197,14 +197,14 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.player.revision.push(gameState.draw());
+            gameState.player.plan.push(gameState.draw());
             if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.discardable = true;
             });
-            gameState.player.revision.forEach(revisionCard => {
-                revisionCard.discardable = true;
+            gameState.player.plan.forEach(planCard => {
+                planCard.discardable = true;
             });
             return new Update("Select a card to discard.", false, false);
         }
@@ -242,7 +242,7 @@ var CardActions = {
         }
         return new Update("", true);
     }),
-    armor: new CardAction("Armor", (gameState, activateData) => { //Your opponent may score their revision for 1 point. Activate one of their items facing them 2x.
+    armor: new CardAction("Armor", (gameState, activateData) => { //Your opponent may score their plan for 1 point. Activate one of their items facing them 2x.
         var card = activateData.card;
         var cardToActivate = gameState.opponent.equipment.find(x => x.metadata === "activate this!");
         resetAllStatuses(gameState);
@@ -250,8 +250,8 @@ var CardActions = {
             card.activationStep = "1";
 
 
-            gameState.opponent.fade(gameState.opponent.revision.pop());
-            gameState.opponent.revision.push(gameState.draw());
+            gameState.opponent.fade(gameState.opponent.plan.pop());
+            gameState.opponent.plan.push(gameState.draw());
             if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.opponent.equipment.forEach(equipmentCard => {
@@ -283,7 +283,7 @@ var CardActions = {
         if (card.activationStep === "0") {
             card.activationStep = "1";
 
-            gameState.player.revision.push(gameState.draw());
+            gameState.player.plan.push(gameState.draw());
             if (gameState.phase === "finished") { return new Update("Game over!", true) }
 
             gameState.player.equipment.forEach(equipmentCard => {
@@ -292,14 +292,14 @@ var CardActions = {
             return new Update("Return an equipped card.", false, false);
         }
         else if (card.activationStep === "1") {
-            if (gameState.player.revision.length === 1) {
+            if (gameState.player.plan.length === 1) {
                 card.activationStep = "2";
             }
             else {
-                gameState.player.revision.forEach(revisionCard => {
-                    revisionCard.equipable = true;
-                    revisionCard.flippable = true;
-                    revisionCard.metadata = "activate this!";
+                gameState.player.plan.forEach(planCard => {
+                    planCard.equipable = true;
+                    planCard.flippable = true;
+                    planCard.metadata = "activate this!";
                 });
                 return new Update("Select a card to equip and activate", false, false);
             }
@@ -328,8 +328,8 @@ var CardActions = {
             gameState.player.equipment.forEach(equipmentCard => {
                 equipmentCard.discardable = true;
             });
-            gameState.player.revision.forEach(revisionCard => {
-                revisionCard.discardable = true;
+            gameState.player.plan.forEach(planCard => {
+                planCard.discardable = true;
             });
         };
 
@@ -346,8 +346,8 @@ var CardActions = {
         else if (card.activationStep === "2") {
             card.activationStep = "99";
 
-            gameState.player.revision.push(gameState.draw());
-            gameState.player.revision.push(gameState.draw());
+            gameState.player.plan.push(gameState.draw());
+            gameState.player.plan.push(gameState.draw());
             if (gameState.phase === "finished") { return new Update("Game over!", true) }
         }
         return new Update("", true);

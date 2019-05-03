@@ -9,6 +9,8 @@ class CardState {
     this.activationStep = "0";
     this.id = _currentCardId++;
     this.resetStatus = this.resetStatus.bind(this);
+    this.getName = this.getName.bind(this);
+    this.getActiveActionName = this.getActiveActionName.bind(this);
     this.rotate = 0;
   }
 
@@ -32,8 +34,26 @@ class CardState {
     this.metadata = "";
   }
 
-  action(gameState, card, farside = false) {
+  getActiveActionName(farside = false) {
+    if (!farside) {
+      if (this.flipped) {
+        return this.action1.name;
+      }
+      else {
+        return this.action2.name;
+      }
+    }
+    else {
+      if (this.flipped) {
+        return this.action2.name;
+      }
+      else {
+        return this.action1.name
+      }
+    }
+  }
 
+  action(gameState, card, farside = false) {
     if (!farside) {
       if (this.flipped) {
         return this.action1.action(gameState, card);

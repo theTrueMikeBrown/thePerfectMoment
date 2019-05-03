@@ -1,5 +1,5 @@
 function resetAllStatuses(state) {
-    state.player.revision.forEach(card => { card.resetStatus(); });
+    state.player.plan.forEach(card => { card.resetStatus(); });
     state.player.equipment.forEach(card => { card.resetStatus(); });
     state.opponent.equipment.forEach(card => {
         card.resetStatus();
